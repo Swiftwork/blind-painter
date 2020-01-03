@@ -1,0 +1,9 @@
+# Ignore everything
+**
+
+# Whitelist
+!server
+!dist
+!package*.json
+!index.js
+
