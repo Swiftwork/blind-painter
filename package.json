@@ -1,15 +1,16 @@
 {
-  "name": "free-draw",
+  "name": "blind-painter",
   "version": "1.0.0",
-  "description": "Websocket touch free drawing canvas",
+  "private": true,
+  "description": "Can you paint blind? or will you be found out?",
+  "author": "Erik Hughes",
+  "license": "GPL-3.0",
   "main": "server/index.js",
   "scripts": {
     "prestart": "rimraf dist",
     "start": "nodemon -w index.js -w server/ index.js",
-    "docker": "docker run -p 5200:5200 free-draw:latest"
+    "docker": "docker run -p 5200:5200 blind-painter:latest"
   },
-  "author": "Erik Hughes",
-  "license": "ISC",
   "dependencies": {
     "@babel/runtime": "^7.7.7",
     "core-js": "3.6.1",

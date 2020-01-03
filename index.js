@@ -31,6 +31,6 @@ if (process.env.NODE_ENV === 'development') {
 const { socket } = require('./server/socket');
 socket(server);
 
-server.listen(51337, '0.0.0.0', () => {
-  console.log(' [*] Listening on 0.0.0.0:9999');
+server.listen(5200, '0.0.0.0', () => {
+  console.log(' [*] Listening on 0.0.0.0:5200');
 });
