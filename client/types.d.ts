@@ -6,3 +6,8 @@ declare module '*.svg' {
   };
   export default svg;
 }
+
+declare module '*.jpg' {
+  const jpg: string;
+  export default jpg;
+}

@@ -1,8 +1,11 @@
 import { State, Point } from './state';
 
+import canvasTile from './assets/canvas-small.jpg';
+
 export class Canvas {
   private state: State;
   private ctx: CanvasRenderingContext2D | null;
+  private pattern: CanvasPattern | null = null;
 
   $canvas: HTMLCanvasElement;
 
@@ -15,6 +18,15 @@ export class Canvas {
 
     window.addEventListener('resize', this.onResize);
     this.onResize();
+
+    // Load the image
+    const img = new Image();
+    img.src = canvasTile;
+    img.onload = () => {
+      if (!this.ctx) return;
+      this.pattern = this.ctx.createPattern(img, 'repeat');
+      this.draw();
+    };
   }
 
   private onResize = () => {
@@ -25,11 +37,19 @@ export class Canvas {
   draw() {
     if (!this.ctx) return;
 
-    this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    if (this.pattern) {
+      this.ctx.fillStyle = this.pattern;
+      this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+      this.ctx.fillStyle = '#000';
+    } else {
+      this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    }
+
     this.ctx.shadowBlur = 1;
-    this.ctx.lineWidth = 6;
+    this.ctx.lineWidth = 8;
     this.ctx.lineJoin = this.ctx.lineCap = 'round';
 
+    this.ctx.globalCompositeOperation = 'overlay';
     for (const [_, client] of this.state.clients) {
       if (!client.first.length) continue;
       this.ctx.strokeStyle = client.color;
@@ -55,6 +75,7 @@ export class Canvas {
       this.ctx.stroke();
       this.ctx.strokeStyle = '#000';
     }
+    this.ctx.globalCompositeOperation = 'source-over';
   }
 
   destroy() {

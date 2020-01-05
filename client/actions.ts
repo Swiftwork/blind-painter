@@ -24,7 +24,7 @@ export class Actions {
   }
 
   onClear = () => {
-    const points = this.state.updateClient(undefined, []);
+    const points = this.state.updateClient(this.state.id, []);
     this.update(this.state.id, points);
   };
 
@@ -39,7 +39,7 @@ export class Actions {
     this.isDrawing = true;
     const x = event instanceof TouchEvent ? event.touches[0].clientX : event.clientX;
     const y = event instanceof TouchEvent ? event.touches[0].clientY : event.clientY;
-    const points = this.state.updateClient(undefined, { x, y });
+    const points = this.state.updateClient(this.state.id, { x, y });
     this.update(this.state.id, points);
   };
 
@@ -48,7 +48,7 @@ export class Actions {
     const x = event instanceof TouchEvent ? event.touches[0].clientX : event.clientX;
     const y = event instanceof TouchEvent ? event.touches[0].clientY : event.clientY;
     if (this.isDrawing) {
-      const points = this.state.updateClient(undefined, { x, y });
+      const points = this.state.updateClient(this.state.id, { x, y });
       this.update(this.state.id, points);
     }
   };
@@ -60,6 +60,6 @@ export class Actions {
 
   private update(id: string | null, points: Point[] | undefined) {
     this.canvas.draw();
-    this.socket.send({ type: 'update', detail: { id: this.state.id, points } });
+    this.socket.send({ type: 'update', detail: { id, points } });
   }
 }
