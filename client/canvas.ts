@@ -1,22 +1,25 @@
 import { State, Point } from './state';
 
 export class Canvas {
-  private canvas: HTMLCanvasElement;
   private state: State;
   private ctx: CanvasRenderingContext2D | null;
 
-  constructor(canvas: HTMLCanvasElement, state: State) {
-    this.canvas = canvas;
+  $canvas: HTMLCanvasElement;
+
+  constructor(state: State) {
     this.state = state;
-    this.ctx = canvas.getContext('2d');
+    this.$canvas = document.createElement('canvas');
+    this.$canvas.id = 'canvas';
+    this.ctx = this.$canvas.getContext('2d');
+    document.body.appendChild(this.$canvas);
 
     window.addEventListener('resize', this.onResize);
     this.onResize();
   }
 
   private onResize = () => {
-    this.canvas.width = document.body.clientWidth;
-    this.canvas.height = document.body.clientHeight;
+    this.$canvas.width = document.body.clientWidth;
+    this.$canvas.height = document.body.clientHeight;
   };
 
   draw() {

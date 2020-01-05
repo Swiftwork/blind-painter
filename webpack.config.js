@@ -30,6 +30,10 @@ module.exports = (_, argv) => ({
         include: context,
         use: [{ loader: 'prettier-loader', options: { parser: 'typescript' } }],
       },
+      {
+        test: /\.svg$/,
+        use: ['svg-sprite-loader', 'svgo-loader'],
+      },
     ],
   },
 

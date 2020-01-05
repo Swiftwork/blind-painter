@@ -1,29 +1,38 @@
 import { Canvas } from './canvas';
-import { State } from './state';
+import { State, Point } from './state';
 import { Socket } from 'socket';
 
 export class Actions {
-  private $canvas: HTMLCanvasElement;
   private canvas: Canvas;
   private state: State;
   private isDrawing = false;
   private socket: Socket;
 
-  constructor($canvas: HTMLCanvasElement, canvas: Canvas, state: State, socket: Socket) {
-    this.$canvas = $canvas;
+  constructor(canvas: Canvas, state: State, socket: Socket) {
     this.canvas = canvas;
     this.state = state;
     this.socket = socket;
 
-    this.$canvas.addEventListener('touchstart', this.onTouchStart);
-    this.$canvas.addEventListener('mousedown', this.onTouchStart);
+    canvas.$canvas.addEventListener('touchstart', this.onTouchStart);
+    canvas.$canvas.addEventListener('mousedown', this.onTouchStart);
 
-    this.$canvas.addEventListener('touchmove', this.onTouchMove);
-    this.$canvas.addEventListener('mousemove', this.onTouchMove);
+    canvas.$canvas.addEventListener('touchmove', this.onTouchMove);
+    canvas.$canvas.addEventListener('mousemove', this.onTouchMove);
 
-    this.$canvas.addEventListener('touchend', this.onTouchEnd);
-    this.$canvas.addEventListener('mouseup', this.onTouchEnd);
+    canvas.$canvas.addEventListener('touchend', this.onTouchEnd);
+    canvas.$canvas.addEventListener('mouseup', this.onTouchEnd);
   }
+
+  onClear = () => {
+    const points = this.state.updateClient(undefined, []);
+    this.update(this.state.id, points);
+  };
+
+  onUndo = () => {};
+
+  onRedo = () => {};
+
+  onDone = () => {};
 
   onTouchStart = (event: TouchEvent | MouseEvent) => {
     event.preventDefault();
@@ -31,8 +40,7 @@ export class Actions {
     const x = event instanceof TouchEvent ? event.touches[0].clientX : event.clientX;
     const y = event instanceof TouchEvent ? event.touches[0].clientY : event.clientY;
     const points = this.state.updateClient(undefined, { x, y });
-    this.canvas.draw();
-    this.socket.send({ type: 'update', detail: { id: this.state.id, points } });
+    this.update(this.state.id, points);
   };
 
   onTouchMove = (event: TouchEvent | MouseEvent) => {
@@ -41,8 +49,7 @@ export class Actions {
     const y = event instanceof TouchEvent ? event.touches[0].clientY : event.clientY;
     if (this.isDrawing) {
       const points = this.state.updateClient(undefined, { x, y });
-      this.canvas.draw();
-      this.socket.send({ type: 'update', detail: { id: this.state.id, points } });
+      this.update(this.state.id, points);
     }
   };
 
@@ -50,4 +57,9 @@ export class Actions {
     event.preventDefault();
     this.isDrawing = false;
   };
+
+  private update(id: string | null, points: Point[] | undefined) {
+    this.canvas.draw();
+    this.socket.send({ type: 'update', detail: { id: this.state.id, points } });
+  }
 }
