@@ -13,6 +13,7 @@ export class Canvas {
     this.state = state;
     this.$canvas = document.createElement('canvas');
     this.$canvas.id = 'canvas';
+    //this.$canvas.style.transform = 'matrix(0.16, 0.025, -0.2, 0.53, 186, 68)';
     this.ctx = this.$canvas.getContext('2d');
     document.body.appendChild(this.$canvas);
 

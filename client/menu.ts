@@ -1,39 +1,37 @@
-import { Actions } from './actions';
-import { Util } from './util';
-
-import clearIcon from './assets/icons/clear.svg';
-import undoIcon from './assets/icons/undo.svg';
-import redoIcon from './assets/icons/redo.svg';
-import doneIcon from './assets/icons/done.svg';
-
 export class Menu {
-  private $menu: HTMLMenuElement;
-  private actions: Actions;
+  $form: HTMLFormElement;
 
-  constructor(actions: Actions) {
-    this.actions = actions;
+  constructor() {
+    this.$form = document.createElement('form');
+    this.$form.style.position = 'absolute';
+    this.$form.style.top = '0';
 
-    this.$menu = document.createElement('menu');
-    this.$menu.style.position = 'absolute';
-    this.$menu.style.top = '0';
-    this.$menu.style.right = '0';
+    const $code = document.createElement('input');
+    $code.setAttribute('autocomplete', 'off');
+    $code.setAttribute('autocorrect', 'off');
+    $code.setAttribute('autocapitalize', 'off');
+    $code.setAttribute('spellcheck', 'false');
+    $code.style.backgroundColor = 'rgba(255,255,255,0.5)';
+    $code.style.border = '2px solid';
+    $code.style.padding = '0.5em';
+    $code.style.letterSpacing = '4px';
+    $code.style.fontSize = '1.5em';
+    this.$form.appendChild($code);
 
-    const $clear = Util.Icon(clearIcon.id);
-    $clear.addEventListener('click', this.actions.onClear);
-    this.$menu.appendChild($clear);
+    const $painter = document.createElement('button');
+    $painter.setAttribute('type', 'button');
+    $painter.textContent = 'Join as painter';
+    $painter.style.padding = '0.5em';
+    $painter.style.fontSize = '1.5em';
+    this.$form.appendChild($painter);
 
-    const $undo = Util.Icon(undoIcon.id);
-    $undo.addEventListener('click', this.actions.onUndo);
-    this.$menu.appendChild($undo);
+    const $critic = document.createElement('button');
+    $critic.setAttribute('type', 'button');
+    $critic.textContent = 'Join as critic';
+    $critic.style.padding = '0.5em';
+    $critic.style.fontSize = '1.5em';
+    this.$form.appendChild($critic);
 
-    const $redo = Util.Icon(redoIcon.id);
-    $redo.addEventListener('click', this.actions.onRedo);
-    this.$menu.appendChild($redo);
-
-    const $done = Util.Icon(doneIcon.id);
-    $done.addEventListener('click', this.actions.onDone);
-    this.$menu.appendChild($done);
-
-    document.body.appendChild(this.$menu);
+    document.body.appendChild(this.$form);
   }
 }

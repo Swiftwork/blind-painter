@@ -1,12 +1,12 @@
-'use strict';
-
 require('dotenv').config();
 const http = require('http');
 const express = require('express');
+const bodyParser = require('body-parser');
 
 const app = express();
 const server = http.createServer(app);
 
+app.use(bodyParser.json());
 app.use(express.static('dist'));
 
 //------------------------------------------------------------------------------------
@@ -30,6 +30,9 @@ if (process.env.NODE_ENV === 'development') {
 
 const { socket } = require('./server/socket');
 socket(server);
+
+const { endpoint } = require('./server/sessions');
+app.use('/sessions', endpoint);
 
 server.listen(5200, '0.0.0.0', () => {
   console.log(' [*] Listening on 0.0.0.0:5200');
