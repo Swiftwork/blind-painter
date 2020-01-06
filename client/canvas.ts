@@ -32,6 +32,7 @@ export class Canvas {
   private onResize = () => {
     this.$canvas.width = document.body.clientWidth;
     this.$canvas.height = document.body.clientHeight;
+    this.draw();
   };
 
   draw() {

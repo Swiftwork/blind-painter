@@ -1,3 +1,8 @@
+declare module '*.full.svg' {
+  const svg: string;
+  export default svg;
+}
+
 declare module '*.svg' {
   const svg: {
     id: string;

@@ -4,18 +4,21 @@ export interface Point {
 }
 
 export interface Client {
+  name: string;
   color: string;
   first: Point[];
   second: Point[];
 }
 
 export class State {
+  connected = false;
   clients: Map<string, Client> = new Map();
 
   updateClient(id = this.id, points: Point | Point[]) {
     if (!id) return;
 
     const client: Client = this.clients.get(id) || {
+      name: id,
       color: State.intToRGB(State.hashCode(id)),
       first: [],
       second: [],

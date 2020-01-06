@@ -32,10 +32,11 @@ module.exports = (_, argv) => ({
       },
       {
         test: /\.svg$/,
+        exclude: /\.full\.svg$/,
         use: ['svg-sprite-loader', 'svgo-loader'],
       },
       {
-        test: /\.(jpe?g)$/,
+        test: /\.(full\.svg|jpe?g)$/,
         loader: 'file-loader',
       },
     ],
