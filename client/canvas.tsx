@@ -1,24 +1,31 @@
-import { State, Point } from './state';
+import React, { Component, createRef } from 'react';
+
+import { Session, Point, Client } from './api/session';
+import { Socket } from './api/socket';
 
 import canvasTile from './assets/canvas-small.jpg';
 
-export class Canvas {
-  private state: State;
-  private ctx: CanvasRenderingContext2D | null;
+interface Props {
+  clients: Map<string, Client>;
+}
+
+interface State {
+  width: number;
+  height: number;
+}
+
+export class Canvas extends Component<Props, State> {
+  private ctx: CanvasRenderingContext2D | null = null;
   private pattern: CanvasPattern | null = null;
+  private $canvas = createRef<HTMLCanvasElement>();
 
-  $canvas: HTMLCanvasElement;
+  constructor(props: Props) {
+    super(props);
 
-  constructor(state: State) {
-    this.state = state;
-    this.$canvas = document.createElement('canvas');
-    this.$canvas.id = 'canvas';
-    //this.$canvas.style.transform = 'matrix(0.16, 0.025, -0.2, 0.53, 186, 68)';
-    this.ctx = this.$canvas.getContext('2d');
-    document.body.appendChild(this.$canvas);
-
-    window.addEventListener('resize', this.onResize);
-    this.onResize();
+    this.state = {
+      width: 0,
+      height: 0,
+    };
 
     // Load the image
     const img = new Image();
@@ -30,11 +37,37 @@ export class Canvas {
     };
   }
 
-  private onResize = () => {
-    this.$canvas.width = document.body.clientWidth;
-    this.$canvas.height = document.body.clientHeight;
+  componentDidMount() {
+    if (this.$canvas.current) {
+      this.ctx = this.$canvas.current.getContext('2d');
+      window.addEventListener('resize', this.onResize);
+      this.onResize();
+    }
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
+  }
+
+  componentDidUpdate() {
     this.draw();
+  }
+
+  private onResize = () => {
+    this.setState(
+      {
+        width: document.body.clientWidth,
+        height: document.body.clientHeight,
+      },
+      () => {
+        this.draw();
+      },
+    );
   };
+
+  render() {
+    return <canvas ref={this.$canvas} id="canvas" width={this.state.width} height={this.state.height} />;
+  }
 
   draw() {
     if (!this.ctx) return;
@@ -52,7 +85,7 @@ export class Canvas {
     this.ctx.lineJoin = this.ctx.lineCap = 'round';
 
     this.ctx.globalCompositeOperation = 'overlay';
-    for (const [_, client] of this.state.clients) {
+    for (const [_, client] of this.props.clients) {
       if (!client.first.length) continue;
       this.ctx.strokeStyle = client.color;
       this.ctx.shadowColor = client.color;
@@ -78,10 +111,6 @@ export class Canvas {
       this.ctx.strokeStyle = '#000';
     }
     this.ctx.globalCompositeOperation = 'source-over';
-  }
-
-  destroy() {
-    window.removeEventListener('resize', this.onResize);
   }
 
   static midPointBtw(p1: Point, p2: Point) {

@@ -10,7 +10,7 @@ export interface Client {
   second: Point[];
 }
 
-export class State {
+export class Session {
   connected = false;
   clients: Map<string, Client> = new Map();
 
@@ -19,7 +19,7 @@ export class State {
 
     const client: Client = this.clients.get(id) || {
       name: id,
-      color: State.intToRGB(State.hashCode(id)),
+      color: Session.intToRGB(Session.hashCode(id)),
       first: [],
       second: [],
     };

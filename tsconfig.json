@@ -5,6 +5,7 @@
     "strict": true,
     "allowJs": true,
     "resolveJsonModule": true,
+    "jsx": "preserve",
     "moduleResolution": "node",
     "experimentalDecorators": true,
     "esModuleInterop": true,
@@ -17,6 +18,6 @@
       "*": ["*"]
     }
   },
-  "include": ["client/**/*.ts"],
+  "include": ["client/**/*.ts", "client/**/*.tsx"],
   "exclude": ["node_modules"]
 }

@@ -10,33 +10,32 @@ const context = path.join(process.cwd(), 'client');
 
 module.exports = (_, argv) => ({
   context: context,
-  entry: ['./main.ts'],
+  entry: ['./main.tsx'],
   mode: argv.mode || 'development',
   resolve: {
-    extensions: ['.js', '.ts', '.json'],
+    extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
     modules: [context, 'node_modules'],
   },
   module: {
     rules: [
       {
         // Source files and non-compiled node_modules
-        test: /\.(js|ts)$/,
+        test: /\.(js|ts)x?$/,
         exclude: /node_modules/,
         use: ['babel-loader'],
       },
       {
         // Only source files
-        test: /\.(js|ts)$/,
+        test: /\.(js|ts)x?$/,
         include: context,
         use: [{ loader: 'prettier-loader', options: { parser: 'typescript' } }],
       },
       {
         test: /\.svg$/,
-        exclude: /\.full\.svg$/,
-        use: ['svg-sprite-loader', 'svgo-loader'],
+        use: ['@svgr/webpack', 'svgo-loader'],
       },
       {
-        test: /\.(full\.svg|jpe?g)$/,
+        test: /\.(jpe?g)$/,
         loader: 'file-loader',
       },
     ],

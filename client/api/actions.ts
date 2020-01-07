@@ -1,18 +1,18 @@
-import { Canvas } from './canvas';
-import { State, Point } from './state';
+import { Canvas } from '../canvas';
+import { Session, Point } from './session';
 import { Socket } from './socket';
 
 export class Actions {
   private canvas: Canvas;
-  private state: State;
+  private state: Session;
   private isDrawing = false;
-  private socket: Socket;
+  private stream: Socket;
   private inThrottle = false;
 
-  constructor(canvas: Canvas, state: State, socket: Socket) {
+  constructor(canvas: Canvas, state: Session, stream: Socket) {
     this.canvas = canvas;
     this.state = state;
-    this.socket = socket;
+    this.stream = stream;
 
     canvas.$canvas.addEventListener('touchstart', this.onTouchStart);
     canvas.$canvas.addEventListener('mousedown', this.onTouchStart);
@@ -63,7 +63,7 @@ export class Actions {
   private update(id: string | null, points: Point[] | undefined) {
     this.canvas.draw();
     if (!this.inThrottle) {
-      this.socket.send({ type: 'update', detail: { id, points } });
+      this.stream.send({ type: 'update', detail: { id, points } });
       this.inThrottle = true;
       setTimeout(() => (this.inThrottle = false), 50);
     }
