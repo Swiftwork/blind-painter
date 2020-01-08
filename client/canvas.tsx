@@ -1,6 +1,6 @@
 import React, { Component, createRef } from 'react';
 
-import { Session, Point, Client } from './api/session';
+import { SessionContext, Point, Client } from './api/session';
 import { Socket } from './api/socket';
 
 import canvasTile from './assets/canvas-small.jpg';
@@ -63,6 +63,31 @@ export class Canvas extends Component<Props, State> {
         this.draw();
       },
     );
+  };
+
+  onTouchStart = (event: TouchEvent | MouseEvent) => {
+    if (!this.state.connected) return;
+    event.preventDefault();
+    this.isDrawing = true;
+    const x = event instanceof TouchEvent ? event.touches[0].clientX : event.clientX;
+    const y = event instanceof TouchEvent ? event.touches[0].clientY : event.clientY;
+    const points = this.state.updateClient(this.state.id, { x, y });
+    this.update(this.state.id, points);
+  };
+
+  onTouchMove = (event: TouchEvent | MouseEvent) => {
+    event.preventDefault();
+    const x = event instanceof TouchEvent ? event.touches[0].clientX : event.clientX;
+    const y = event instanceof TouchEvent ? event.touches[0].clientY : event.clientY;
+    if (this.isDrawing) {
+      const points = this.state.updateClient(this.state.id, { x, y });
+      this.update(this.state.id, points);
+    }
+  };
+
+  onTouchEnd = (event: TouchEvent | MouseEvent) => {
+    event.preventDefault();
+    this.isDrawing = false;
   };
 
   render() {

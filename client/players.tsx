@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Session, Client } from './api/session';
+import { SessionContext, Client } from './api/session';
 
 import PaletteIcon from './assets/icons/palette.svg';
 

@@ -1,27 +1,17 @@
-import { Canvas } from '../canvas';
-import { Session, Point } from './session';
+import { SessionContext, Point } from './session';
 import { Socket } from './socket';
+import { createContext } from 'react';
 
 export class Actions {
-  private canvas: Canvas;
   private state: Session;
+  private socket: Socket;
+
   private isDrawing = false;
-  private stream: Socket;
   private inThrottle = false;
 
-  constructor(canvas: Canvas, state: Session, stream: Socket) {
-    this.canvas = canvas;
+  constructor(state: Session, socket: Socket, updateCallback: () => void) {
     this.state = state;
-    this.stream = stream;
-
-    canvas.$canvas.addEventListener('touchstart', this.onTouchStart);
-    canvas.$canvas.addEventListener('mousedown', this.onTouchStart);
-
-    canvas.$canvas.addEventListener('touchmove', this.onTouchMove);
-    canvas.$canvas.addEventListener('mousemove', this.onTouchMove);
-
-    canvas.$canvas.addEventListener('touchend', this.onTouchEnd);
-    canvas.$canvas.addEventListener('mouseup', this.onTouchEnd);
+    this.socket = socket;
   }
 
   onClear = () => {
@@ -61,9 +51,8 @@ export class Actions {
   };
 
   private update(id: string | null, points: Point[] | undefined) {
-    this.canvas.draw();
     if (!this.inThrottle) {
-      this.stream.send({ type: 'update', detail: { id, points } });
+      this.socket.send({ type: 'update', detail: { id, points } });
       this.inThrottle = true;
       setTimeout(() => (this.inThrottle = false), 50);
     }
