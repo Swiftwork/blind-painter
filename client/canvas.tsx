@@ -1,13 +1,10 @@
-import React, { Component, createRef } from 'react';
+import React, { Component, createRef, MouseEvent as RMouseEvent, TouchEvent as RTouchEvent } from 'react';
 
 import { SessionContext, Point, Client } from './api/session';
-import { Socket } from './api/socket';
 
 import canvasTile from './assets/canvas-small.jpg';
 
-interface Props {
-  clients: Map<string, Client>;
-}
+interface Props {}
 
 interface State {
   width: number;
@@ -15,9 +12,13 @@ interface State {
 }
 
 export class Canvas extends Component<Props, State> {
+  static contextType = SessionContext;
+  declare context: React.ContextType<typeof SessionContext>;
+
   private ctx: CanvasRenderingContext2D | null = null;
   private pattern: CanvasPattern | null = null;
   private $canvas = createRef<HTMLCanvasElement>();
+  private isDrawing = false;
 
   constructor(props: Props) {
     super(props);
@@ -65,33 +66,42 @@ export class Canvas extends Component<Props, State> {
     );
   };
 
-  onTouchStart = (event: TouchEvent | MouseEvent) => {
-    if (!this.state.connected) return;
+  onTouchStart = (event: RTouchEvent | RMouseEvent) => {
+    if (!this.context.connected) return;
     event.preventDefault();
     this.isDrawing = true;
-    const x = event instanceof TouchEvent ? event.touches[0].clientX : event.clientX;
-    const y = event instanceof TouchEvent ? event.touches[0].clientY : event.clientY;
-    const points = this.state.updateClient(this.state.id, { x, y });
-    this.update(this.state.id, points);
+    this.context.updateClient(this.context.id, Canvas.GetCoords(event));
+    this.draw();
   };
 
-  onTouchMove = (event: TouchEvent | MouseEvent) => {
+  onTouchMove = (event: RTouchEvent | RMouseEvent) => {
     event.preventDefault();
-    const x = event instanceof TouchEvent ? event.touches[0].clientX : event.clientX;
-    const y = event instanceof TouchEvent ? event.touches[0].clientY : event.clientY;
     if (this.isDrawing) {
-      const points = this.state.updateClient(this.state.id, { x, y });
-      this.update(this.state.id, points);
+      this.context.updateClient(this.context.id, Canvas.GetCoords(event));
+      this.draw();
     }
   };
 
-  onTouchEnd = (event: TouchEvent | MouseEvent) => {
+  onTouchEnd = (event: RTouchEvent | RMouseEvent) => {
     event.preventDefault();
     this.isDrawing = false;
   };
 
   render() {
-    return <canvas ref={this.$canvas} id="canvas" width={this.state.width} height={this.state.height} />;
+    return (
+      <canvas
+        ref={this.$canvas}
+        id="canvas"
+        width={this.state.width}
+        height={this.state.height}
+        onTouchStart={this.onTouchStart}
+        onMouseDown={this.onTouchStart}
+        onTouchMove={this.onTouchMove}
+        onMouseMove={this.onTouchMove}
+        onTouchEnd={this.onTouchEnd}
+        onMouseUp={this.onTouchEnd}
+      />
+    );
   }
 
   draw() {
@@ -110,7 +120,7 @@ export class Canvas extends Component<Props, State> {
     this.ctx.lineJoin = this.ctx.lineCap = 'round';
 
     this.ctx.globalCompositeOperation = 'overlay';
-    for (const [_, client] of this.props.clients) {
+    for (const [_, client] of this.context.clients) {
       if (!client.first.length) continue;
       this.ctx.strokeStyle = client.color;
       this.ctx.shadowColor = client.color;
@@ -136,6 +146,23 @@ export class Canvas extends Component<Props, State> {
       this.ctx.strokeStyle = '#000';
     }
     this.ctx.globalCompositeOperation = 'source-over';
+  }
+
+  static GetCoords(event: RTouchEvent | RMouseEvent) {
+    let x = 0;
+    let y = 0;
+    if (Canvas.IsTouch(event)) {
+      x = event.touches[0].clientX;
+      y = event.touches[0].clientY;
+    } else {
+      x = event.nativeEvent.clientX;
+      y = event.nativeEvent.clientY;
+    }
+    return { x, y };
+  }
+
+  static IsTouch(event: RTouchEvent | RMouseEvent): event is RTouchEvent {
+    return event.nativeEvent instanceof TouchEvent;
   }
 
   static midPointBtw(p1: Point, p2: Point) {

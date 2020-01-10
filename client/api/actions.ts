@@ -1,15 +1,15 @@
+import { createContext } from 'react';
 import { SessionContext, Point } from './session';
 import { Socket } from './socket';
-import { createContext } from 'react';
 
 export class Actions {
-  private state: Session;
+  private state: any;
   private socket: Socket;
 
   private isDrawing = false;
   private inThrottle = false;
 
-  constructor(state: Session, socket: Socket, updateCallback: () => void) {
+  constructor(state: any, socket: Socket, updateCallback: () => void) {
     this.state = state;
     this.socket = socket;
   }

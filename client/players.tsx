@@ -3,15 +3,16 @@ import { SessionContext, Client } from './api/session';
 
 import PaletteIcon from './assets/icons/palette.svg';
 
-interface Props {
-  session: Session;
-}
+interface Props {}
 
 export class Players extends Component<Props> {
+  static contextType = SessionContext;
+  declare context: React.ContextType<typeof SessionContext>;
+
   render() {
     return (
       <section style={{ position: 'absolute', display: 'flex', top: '0', left: '0', width: '100%' }}>
-        {Array.from(this.props.session.clients).map(([_, client]) => Players.Player(client))}
+        {Array.from(this.context.clients).map(([_, client]) => Players.Player(client))}
       </section>
     );
   }

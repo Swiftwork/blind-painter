@@ -27,6 +27,7 @@ export function intToRGB(i: number) {
 
 export const session = {
   connected: false,
+  painter: false,
   clients: new Map<string, Client>(),
 
   updateClient(id: string | null, points: Point | Point[]) {
