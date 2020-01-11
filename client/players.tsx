@@ -19,9 +19,9 @@ export class Players extends Component<Props> {
 
   static Player(client: Client) {
     return (
-      <figure style={{ flex: '0 1 20%', textAlign: 'center' }}>
+      <figure key={client.id} style={{ flex: '0 1 20%', textAlign: 'center' }}>
         <PaletteIcon fill={client.color} width={96} height={96} />
-        <figcaption>${client.name}</figcaption>
+        <figcaption>{client.name}</figcaption>
       </figure>
     );
   }

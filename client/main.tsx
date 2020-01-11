@@ -3,8 +3,13 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import { Game } from './game';
+import { SessionProvider } from './api/session';
 
-const main = () => <Game />;
+const main = () => (
+  <SessionProvider>
+    <Game />
+  </SessionProvider>
+);
 
 /* Render hook for multiple of same the fragment */
 document.querySelectorAll(`#root`).forEach(element => {

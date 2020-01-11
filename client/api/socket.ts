@@ -1,19 +1,17 @@
 import sockjs, { Options, OpenEvent, MessageEvent, CloseEvent } from 'sockjs-client';
-import { EventEmitter } from './emitter';
+import { SessionAction } from './session';
 
 export interface SocketEvent {
   type: string;
   detail: any;
 }
 
-export class Socket extends EventEmitter<'setting' | 'update'> {
+export class Socket {
   connected = false;
 
   socket: WebSocket;
 
-  constructor(url: string, sessionId: string | null) {
-    super();
-
+  constructor(url: string, sessionId: string | null, private dispatch: (action: SessionAction) => void) {
     const options: Options = {};
     if (sessionId) options.sessionId = () => sessionId;
 
@@ -29,17 +27,17 @@ export class Socket extends EventEmitter<'setting' | 'update'> {
   }
 
   private onOpen = (event: OpenEvent) => {
-    this.connected = true;
+    this.dispatch({ type: 'socket', payload: { status: 'connected' } });
   };
 
   private onMessage = (event: MessageEvent) => {
     const data: SocketEvent = JSON.parse(event.data);
     switch (data.type) {
-      case 'setting':
-        this.emit('setting', data.detail);
+      case 'session':
+        this.dispatch({ type: 'session', payload: data.detail });
         break;
       case 'update':
-        this.emit('update', data.detail);
+        //this.emit('update', data.detail);
         break;
     }
   };
@@ -47,6 +45,6 @@ export class Socket extends EventEmitter<'setting' | 'update'> {
   private onError = (event: Event) => {};
 
   private onClose = (event: CloseEvent) => {
-    this.connected = false;
+    this.dispatch({ type: 'socket', payload: { status: 'disconnected' } });
   };
 }

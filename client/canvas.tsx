@@ -1,6 +1,6 @@
 import React, { Component, createRef, MouseEvent as RMouseEvent, TouchEvent as RTouchEvent } from 'react';
 
-import { SessionContext, Point, Client } from './api/session';
+import { SessionContext, Point } from './api/session';
 
 import canvasTile from './assets/canvas-small.jpg';
 
@@ -70,14 +70,14 @@ export class Canvas extends Component<Props, State> {
     if (!this.context.connected) return;
     event.preventDefault();
     this.isDrawing = true;
-    this.context.updateClient(this.context.id, Canvas.GetCoords(event));
+    this.context.dispatch({ type: 'update', payload: { points: Canvas.GetCoords(event) } });
     this.draw();
   };
 
   onTouchMove = (event: RTouchEvent | RMouseEvent) => {
     event.preventDefault();
     if (this.isDrawing) {
-      this.context.updateClient(this.context.id, Canvas.GetCoords(event));
+      this.context.dispatch({ type: 'update', payload: { points: Canvas.GetCoords(event) } });
       this.draw();
     }
   };
@@ -121,31 +121,39 @@ export class Canvas extends Component<Props, State> {
 
     this.ctx.globalCompositeOperation = 'overlay';
     for (const [_, client] of this.context.clients) {
-      if (!client.first.length) continue;
-      this.ctx.strokeStyle = client.color;
-      this.ctx.shadowColor = client.color;
-      let p1 = client.first[0];
-      let p2 = client.first[1];
-
-      this.ctx.beginPath();
-      this.ctx.moveTo(p1.x, p1.y);
-
-      for (let i = 1, len = client.first.length; i < len; i++) {
-        // we pick the point between pi+1 & pi+2 as the
-        // end point and p1 as our control point
-        const midPoint = Canvas.midPointBtw(p1, p2);
-        this.ctx.quadraticCurveTo(p1.x, p1.y, midPoint.x, midPoint.y);
-        p1 = client.first[i];
-        p2 = client.first[i + 1];
+      for (const itteration of client.itterations) {
+        if (!itteration.length) continue;
+        this.drawLine(itteration, client.color);
       }
-      // Draw last line as a straight line while
-      // we wait for the next point to be able to calculate
-      // the bezier control point
-      this.ctx.lineTo(p1.x, p1.y);
-      this.ctx.stroke();
-      this.ctx.strokeStyle = '#000';
     }
     this.ctx.globalCompositeOperation = 'source-over';
+  }
+
+  drawLine(points: Point[], color: string) {
+    if (!this.ctx) return;
+
+    this.ctx.strokeStyle = color;
+    this.ctx.shadowColor = color;
+    let p1 = points[0];
+    let p2 = points[1];
+
+    this.ctx.beginPath();
+    this.ctx.moveTo(p1.x, p1.y);
+
+    for (let i = 1, len = points.length; i < len; i++) {
+      // we pick the point between pi+1 & pi+2 as the
+      // end point and p1 as our control point
+      const midPoint = Canvas.midPointBtw(p1, p2);
+      this.ctx.quadraticCurveTo(p1.x, p1.y, midPoint.x, midPoint.y);
+      p1 = points[i];
+      p2 = points[i + 1];
+    }
+    // Draw last line as a straight line while
+    // we wait for the next point to be able to calculate
+    // the bezier control point
+    this.ctx.lineTo(p1.x, p1.y);
+    this.ctx.stroke();
+    this.ctx.strokeStyle = '#000';
   }
 
   static GetCoords(event: RTouchEvent | RMouseEvent) {

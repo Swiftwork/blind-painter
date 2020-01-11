@@ -33,9 +33,9 @@ class Session {
 router.post('/', function(req, res) {
   //const date = Date.now();
   const date = new Date('2010-01-01T20:00:00');
-  const sessionId = hashids.encode(date % (1000 * 60 * 60));
-  module.exports.sessions.set(sessionId, new Session(sessionId));
-  res.send({ sessionId });
+  const id = hashids.encode(date % (1000 * 60 * 60));
+  module.exports.sessions.set(id, new Session(id));
+  res.send({ id });
 });
 
 router.put('/:id', function(req, res) {

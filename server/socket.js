@@ -20,16 +20,16 @@ module.exports.socket = server => {
   };
 
   socket.on('connection', connection => {
-    const id = connection.url.split('/')[3];
-    connections[id] = connection;
-    broadcast(connection, { type: 'setting', detail: { id } });
+    const socketSession = connection.url.split('/')[3];
+    connections[socketSession] = connection;
+    broadcast(connection, { type: 'session', detail: { socketSession } });
 
     connection.on('close', function() {
-      delete connections[id];
+      delete connections[socketSession];
     });
 
     connection.on('data', event => {
-      broadcastAll(event, [id]);
+      broadcastAll(event, [socketSession]);
     });
   });
 
