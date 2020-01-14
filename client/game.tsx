@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 import { SessionContext, Point, Client, Session, SessionDebug } from './api/session';
-import { Server } from './api/server';
+import { Server, SessionClient } from './api/server';
 import { Socket } from './api/socket';
 import { Canvas } from './canvas';
 import { Controls } from './controls';
@@ -26,28 +26,31 @@ export class Game extends Component<Props, State> {
     this.state = {};
   }
 
-  componentDidUpdate(props: Props, state: State, context: React.ContextType<typeof SessionContext>) {
-    console.log(context);
+  componentDidUpdate() {
+    const client = this.context.clients.get(this.context.clientId);
+    if (client) this.update(client);
   }
 
   onConnect = (participate: boolean, name: string, code?: string) => {
     if (!code) {
-      Server.NewSession().then(data => {
-        Server.JoinSession(data.id, name, participate).then(this.onSession.bind(this, data.id));
-      });
+      Server.NewSession(name, participate).then(this.onSession);
     } else {
-      Server.JoinSession(code, name, participate).then(this.onSession.bind(this, code));
+      Server.JoinSession(code, name, participate).then(this.onSession);
     }
   };
 
-  onSession = (code: string, client: Client) => {
-    this.socket = new Socket('/socket', this.context.socketSession, this.context.dispatch);
+  onSession = ({ code, client }: SessionClient) => {
+    const socketSession = `${code}-${client.id}`;
+    this.socket = new Socket('/socket', socketSession, this.context.dispatch);
     this.context.dispatch({ type: 'session', payload: { code, clientId: client.id } });
   };
 
-  private update(id: string | null, points: Point[] | undefined) {
-    if (this.socket && !this.inThrottle) {
-      this.socket.send({ type: 'update', detail: { id, points } });
+  private update(client: Client) {
+    if (this.socket && this.context.connected && !this.inThrottle) {
+      this.socket.send({
+        type: 'update',
+        detail: { id: client.id, points: client.itterations[this.context.currentRound - 1] },
+      });
       this.inThrottle = true;
       setTimeout(() => (this.inThrottle = false), 50);
     }
@@ -56,12 +59,12 @@ export class Game extends Component<Props, State> {
   public render() {
     return (
       <>
-        <SessionDebug session={this.context} />
         <Canvas />
         <Splash />
         <Players />
         <Controls />
         {!this.context.connected && <Menu onConnect={this.onConnect} />}
+        <SessionDebug session={this.context} />
       </>
     );
   }

@@ -1,4 +1,5 @@
 const sockjs = require('sockjs');
+const { sessions } = require('./sessions');
 
 module.exports.socket = server => {
   const socket = sockjs.createServer({
@@ -6,30 +7,45 @@ module.exports.socket = server => {
   });
   const connections = {};
 
-  const broadcast = (connection, data) => {
-    data = typeof data !== 'string' ? JSON.stringify(data) : data;
-    connection.write(data);
+  const broadcast = (connection, type, detail) => {
+    const payload = JSON.stringify({ type, detail });
+    connection.write(payload);
   };
 
-  const broadcastAll = (data, exclude) => {
-    data = typeof data !== 'string' ? JSON.stringify(data) : data;
-    for (id in connections) {
-      if (exclude && exclude.includes(id)) continue;
-      connections[id].write(data);
+  const broadcastTo = (type, detail, include, exclude) => {
+    const payload = JSON.stringify({ type, detail });
+    for (const id of include) {
+      if (Array.isArray(exclude) && exclude.includes(id)) continue;
+      connections[id].write(payload);
+    }
+  };
+
+  const broadcastAll = (type, detail, exclude) => {
+    const payload = JSON.stringify({ type, detail });
+    for (const id in connections) {
+      if (Array.isArray(exclude) && exclude.includes(id)) continue;
+      connections[id].write(payload);
     }
   };
 
   socket.on('connection', connection => {
     const socketSession = connection.url.split('/')[3];
     connections[socketSession] = connection;
-    broadcast(connection, { type: 'session', detail: { socketSession } });
+    const [code, clientId] = socketSession.split('-');
+    const session = sessions.get(code);
+    broadcast(connection, 'session', session);
 
     connection.on('close', function() {
       delete connections[socketSession];
     });
 
     connection.on('data', event => {
-      broadcastAll(event, [socketSession]);
+      const { type, detail } = JSON.parse(event);
+      switch (type) {
+        case 'update':
+          broadcastTo('update', detail, session.getSocketSessions(), [socketSession]);
+          break;
+      }
     });
   });
 

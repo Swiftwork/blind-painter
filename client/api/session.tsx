@@ -16,13 +16,11 @@ export interface Client {
 export interface Session {
   code: string;
   clientId: string;
-  socketSession: string;
   connected: boolean;
   rounds: number;
   currentRound: number;
   time: number;
   currentTime: number;
-  painter: boolean;
   clients: Map<string, Client>;
 }
 
@@ -30,7 +28,7 @@ export type SessionAction =
   | { type: 'reset' }
   | { type: 'socket'; payload: { status: 'connected' | 'disconnected' } }
   | { type: 'session'; payload: Partial<Session> }
-  | { type: 'update'; payload: { clientId?: string; points: Point | Point[] } };
+  | { type: 'update'; payload: { id?: string; points: Point | Point[] } };
 
 export interface SessionProps extends Session {
   dispatch: (action: SessionAction) => void;
@@ -40,13 +38,11 @@ const initialState: Session = Object.assign(
   {
     code: '',
     clientId: '',
-    socketSession: '',
     connected: false,
     rounds: 2,
     currentRound: 1,
     time: 1000 * 60,
     currentTime: 0,
-    painter: false,
     clients: new Map<string, Client>(),
   },
   JSON.parse(sessionStorage.getItem('session') as string, (key, value) => {
@@ -66,7 +62,9 @@ function reducer(state: Session, action: SessionAction): Session {
       return { ...state, connected: action.payload.status == 'connected' ? true : false };
 
     case 'session':
-      const newState = { ...state, ...action.payload };
+      const { clients, ...session } = action.payload;
+      const newState = { ...state, ...session };
+      if (clients) newState.clients = new Map(clients);
       sessionStorage.setItem(
         'session',
         JSON.stringify(newState, (key, value) => {
@@ -77,8 +75,8 @@ function reducer(state: Session, action: SessionAction): Session {
       return newState;
 
     case 'update':
-      let id = '';
-      if (!action.payload.clientId) id = state.clientId;
+      let id = action.payload.id;
+      if (!id) id = state.clientId;
       if (!id) return state;
 
       const client: Client = state.clients.get(id) || {
@@ -92,7 +90,7 @@ function reducer(state: Session, action: SessionAction): Session {
       if (!itteration) client.itterations.push((itteration = []));
 
       if (Array.isArray(action.payload.points)) itteration = action.payload.points;
-      else itteration = [...itteration, action.payload.points];
+      else if (action.payload.points) itteration = [...itteration, action.payload.points];
 
       client.itterations[state.currentRound - 1] = itteration;
       state.clients.set(id, client);
@@ -113,7 +111,15 @@ export function SessionProvider(props: Readonly<{ children?: ReactNode }>) {
 
 export function SessionDebug({ session }: { session: Session }) {
   return (
-    <pre style={{ position: 'absolute' }}>
+    <pre style={{ position: 'absolute', top: 0 }}>
+      <button
+        onClick={() => {
+          sessionStorage.removeItem('session');
+          window.location.reload();
+        }}>
+        Clear
+      </button>
+      <br />
       {JSON.stringify(
         session,
         (key, value) => {

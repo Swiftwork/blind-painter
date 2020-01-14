@@ -11,7 +11,7 @@ export class Socket {
 
   socket: WebSocket;
 
-  constructor(url: string, sessionId: string | null, private dispatch: (action: SessionAction) => void) {
+  constructor(url: string, sessionId: string | undefined, private dispatch: (action: SessionAction) => void) {
     const options: Options = {};
     if (sessionId) options.sessionId = () => sessionId;
 
@@ -31,13 +31,13 @@ export class Socket {
   };
 
   private onMessage = (event: MessageEvent) => {
-    const data: SocketEvent = JSON.parse(event.data);
-    switch (data.type) {
+    const { type, detail }: SocketEvent = JSON.parse(event.data);
+    switch (type) {
       case 'session':
-        this.dispatch({ type: 'session', payload: data.detail });
+        this.dispatch({ type: 'session', payload: detail });
         break;
       case 'update':
-        //this.emit('update', data.detail);
+        this.dispatch({ type: 'update', payload: detail });
         break;
     }
   };
