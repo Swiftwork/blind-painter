@@ -4,6 +4,7 @@
     "module": "commonjs",
     "checkJs": true,
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "baseUrl": "./",
     "paths": {

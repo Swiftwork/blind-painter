@@ -1,27 +1,35 @@
 const express = require('express');
 const Hashids = require('hashids/cjs');
 
-const router = express.Router();
+const endpoints = express.Router();
 const hashids = new Hashids('', 5, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 
-module.exports.sessions = new Map();
+const sessions = new Map();
 
 class Session {
   constructor(code) {
     this.code = code;
     this.rounds = 2;
-    this.currentRound = 1;
-    this.time = 1000 * 60;
-    this.currentTime = 0;
+    this.currentRound = 0;
+    this.elapsed = 0;
+    this.turnId = undefined;
+    this.turnOrder = [];
+    this.currentTurn = 0;
+    this.turnDuration = 1000 * 60;
+    this.turnElapsed = 0;
+    this.subject = undefined;
+    this.blindId = undefined;
     this.clients = new Map();
   }
 
-  newClient(name) {
-    const id = hashids.encode(this.clients.size);
+  newClient(name, participate = true) {
+    const id = `${this.code}-${hashids.encode(this.clients.size)}`;
     const client = {
       id,
       name,
       color: '#000',
+      guess: undefined,
+      participate,
       itterations: [],
     };
     if (!this.clients.size) this.host = id;
@@ -29,12 +37,23 @@ class Session {
     return client;
   }
 
+  getClient(id) {
+    return this.clients.get(id);
+  }
+
   deleteClient(id) {
     return this.clients.delete(id);
   }
 
-  getSocketSessions() {
-    return Array.from(this.clients, ([_, client]) => `${this.code}-${client.id}`);
+  getIds(participant) {
+    return Array.from(this.clients, ([_, client]) => {
+      if (typeof participant === 'boolean' && participant === client.participate) {
+        return client.id;
+      } else if (typeof participant === 'undefined') {
+        return client.id;
+      }
+      return undefined;
+    }).filter(id => !!id);
   }
 
   toJSON() {
@@ -42,8 +61,11 @@ class Session {
       code: this.code,
       rounds: this.rounds,
       currentRound: this.currentRound,
-      time: this.time,
-      currentTime: this.currentTime,
+      elapsed: this.elapsed,
+      turnId: this.turnId,
+      currentTurn: this.currentTurn,
+      turnDuration: this.turnDuration,
+      turnElapsed: this.turnElapsed,
       host: this.host,
       clients: Array.from(this.clients.entries()),
     };
@@ -53,41 +75,44 @@ class Session {
 /** Fetches or creates a new session based on code
  * @param {string} [code] code identifying the session
  */
-function getSession(code) {
+function getSession(code, create = true) {
   let session;
   if (typeof code === 'string') {
-    session = module.exports.sessions.get(code);
-  } else {
+    session = sessions.get(code);
+  } else if (create) {
     const date = Date.now();
     code = hashids.encode(date % (1000 * 60 * 60));
-    module.exports.sessions.set(code, (session = new Session(code)));
+    sessions.set(code, (session = new Session(code)));
   }
   return { code, session };
 }
 
-router.post('/', function(req, res) {
+endpoints.post('/', function(req, res) {
   if (!req.body.name) return res.status(400).send(`You must supply a name in request body`);
   const { code, session } = getSession();
-  const client = session.newClient(req.body.name);
+  const client = session.newClient(req.body.name, req.body.participate);
   res.send({ code, client });
 });
 
-router.put('/:code', function(req, res) {
+endpoints.put('/:code', function(req, res) {
   if (!req.body.name) return res.status(400).send(`You must supply a name in request body`);
-  const { code, session } = getSession(req.params.code);
+  const { code, session } = getSession(req.params.code, false);
   if (!session) return res.status(404).send(`Session ${code} does not exist`);
-  const client = session.newClient(req.body.name);
+  const client = session.newClient(req.body.name, req.body.participate);
   res.send({ code, client });
 });
 
-router.delete('/:id/:client', function(req, res) {
-  const session = module.exports.sessions.get(req.params.id);
-  if (!session) return res.status(404).send(`Session ${req.params.id} does not exist`);
+endpoints.delete('/:code/:client', function(req, res) {
+  const { code, session } = getSession(req.params.code, false);
+  if (!session) return res.status(404).send(`Session ${code} does not exist`);
   if (session.deleteClient(req.params.client)) {
-    res.send(`Removed user ${req.params.client} from session ${req.params.id}`);
+    res.send(`Removed user ${req.params.client} from session ${code}`);
   } else {
     res.status(404).send(`User ${req.params.client} does not exist`);
   }
 });
 
-module.exports.endpoint = router;
+module.exports = {
+  sessions,
+  endpoints,
+};

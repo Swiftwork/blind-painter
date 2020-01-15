@@ -1,55 +1,57 @@
 const sockjs = require('sockjs');
-const { sessions } = require('./sessions');
 
-module.exports.socket = server => {
-  const socket = sockjs.createServer({
-    prefix: '/socket',
-  });
-  const connections = {};
+const { EventEmitter } = require('./emitter');
 
-  const broadcast = (connection, type, detail) => {
-    const payload = JSON.stringify({ type, detail });
-    connection.write(payload);
-  };
+class Socket extends EventEmitter {
+  constructor(server) {
+    super();
 
-  const broadcastTo = (type, detail, include, exclude) => {
-    const payload = JSON.stringify({ type, detail });
-    for (const id of include) {
-      if (Array.isArray(exclude) && exclude.includes(id)) continue;
-      connections[id].write(payload);
-    }
-  };
+    this.socket = sockjs.createServer({
+      prefix: '/socket',
+    });
+    this.connections = {};
 
-  const broadcastAll = (type, detail, exclude) => {
-    const payload = JSON.stringify({ type, detail });
-    for (const id in connections) {
-      if (Array.isArray(exclude) && exclude.includes(id)) continue;
-      connections[id].write(payload);
-    }
-  };
+    this.socket.on('connection', connection => {
+      const socketSession = connection.url.split('/')[3];
+      this.connections[socketSession] = connection;
+      this.emit('connected', { socketSession });
 
-  socket.on('connection', connection => {
-    const socketSession = connection.url.split('/')[3];
-    connections[socketSession] = connection;
-    const [code, clientId] = socketSession.split('-');
-    const session = sessions.get(code);
-    broadcast(connection, 'session', session);
+      connection.on('close', () => {
+        this.emit('disconnected', { socketSession });
+        delete this.connections[socketSession];
+      });
 
-    connection.on('close', function() {
-      delete connections[socketSession];
+      connection.on('data', event => {
+        const { type, detail } = JSON.parse(event);
+        console.log(type, detail);
+        this.emit(type, { socketSession, ...detail });
+      });
     });
 
-    connection.on('data', event => {
-      const { type, detail } = JSON.parse(event);
-      switch (type) {
-        case 'update':
-          broadcastTo('update', detail, session.getSocketSessions(), [socketSession]);
-          break;
+    this.socket.installHandlers(server);
+  }
+
+  broadcastTo(include, type, detail, exclude) {
+    const payload = JSON.stringify({ type, detail });
+    if (Array.isArray(include)) {
+      for (const socketSession of include) {
+        if (Array.isArray(exclude) && exclude.includes(socketSession)) continue;
+        this.connections[socketSession].write(payload);
       }
-    });
-  });
+    } else {
+      this.connections[include].write(payload);
+    }
+  }
 
-  socket.installHandlers(server);
+  broadcastAll(type, detail, exclude) {
+    const payload = JSON.stringify({ type, detail });
+    for (const socketSession in this.connections) {
+      if (Array.isArray(exclude) && exclude.includes(socketSession)) continue;
+      this.connections[socketSession].write(payload);
+    }
+  }
+}
 
-  return socket;
+module.exports = {
+  Socket,
 };
