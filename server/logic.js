@@ -9,11 +9,11 @@ class Logic {
     this.tick = 1000;
 
     /* EVENTS */
-    socket.on('connected', this.onConnected);
-    socket.on('disconnected', this.onDisconnected);
+    socket.on('session', this.onSession);
     socket.on('settings', () => {});
     socket.on('start', this.onStart);
     socket.on('draw', () => {});
+    // "round" only broadcasted
     socket.on('turn', this.onTurn);
     socket.on('guess', () => {});
     // "reveal" only broadcasted
@@ -21,20 +21,20 @@ class Logic {
   }
 
   getSessionClient(socketSession) {
-    const [code, clientId] = socketSession.split('-');
+    const [code] = socketSession.split('-');
     const session = this.sessions.get(code);
     if (session) {
-      const client = session.getClient(clientId);
+      const client = session.getClient(socketSession);
       return { session, client };
     }
     return {};
   }
 
-  onConnected = ({ socketSession }) => {
-    console.log('logic onConnected', socketSession);
+  onSession = ({ socketSession }) => {
+    console.log('logic onSession', socketSession);
     const { session, client } = this.getSessionClient(socketSession);
     if (session && client) {
-      this.socket.broadcastTo(session.getIds(), 'connected', { session, client });
+      this.socket.broadcastTo(session.getIds(), 'session', { session, client });
     }
   };
 
@@ -46,10 +46,10 @@ class Logic {
     }
   };
 
-  onStart = ({ socketSession, code }) => {
+  onStart = ({ socketSession }) => {
     console.log('logic onStart', socketSession);
-    const session = this.sessions.get(code);
-    if (session.host !== socketSession) return; // Only host can start the game
+    const { session } = this.getSessionClient(socketSession);
+    if (session.hostId !== socketSession) return; // Only host can start the game
 
     const ids = session.getIds();
     const participantIds = session.getIds(true);
@@ -61,8 +61,8 @@ class Logic {
     this.advanceRound(session);
   };
 
-  onDraw = ({ socketSession, code, points }) => {
-    console.log('logic onDraw', socketSession);
+  onDraw = ({ socketSession, points }) => {
+    //console.log('logic onDraw', socketSession);
 
     const { session, client } = this.getSessionClient(socketSession);
     if (session && client && points && session.turn === socketSession) {
@@ -75,13 +75,13 @@ class Logic {
       client.itterations[session.currentRound - 1] = itteration;
 
       const ids = session.getIds();
-      this.socket.broadcastTo(ids, 'draw', { code, points }, [socketSession]);
+      this.socket.broadcastTo(ids, 'draw', { clientId: socketSession, points }, [socketSession]);
     }
   };
 
-  onTurn = ({ socketSession, code }) => {
+  onTurn = ({ socketSession }) => {
     console.log('logic onTurn', socketSession);
-    const session = this.sessions.get(code);
+    const { session } = this.getSessionClient(socketSession);
     if (session.turn !== socketSession) return; // Only current client may advance turn
 
     this.advanceTurn(session);

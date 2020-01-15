@@ -14,13 +14,13 @@ interface Props {
   onSubmit?: () => void;
 }
 
-export function Controls({ onClear, onUndo, onRedo, onSubmit }: Props) {
+export function Actions({ onClear, onUndo, onRedo, onSubmit }: Props) {
   return (
     <menu className={s.actions}>
-      <ClearIcon onClick={() => onClear} />
-      <UndoIcon onClick={() => onUndo} />
-      <RedoIcon onClick={() => onRedo} />
-      <DoneIcon onClick={() => onSubmit} />
+      <ClearIcon className={s.icon} onClick={() => onClear} />
+      <UndoIcon className={s.icon} onClick={() => onUndo} />
+      <RedoIcon className={s.icon} onClick={() => onRedo} />
+      <DoneIcon className={s.icon} onClick={() => onSubmit} />
     </menu>
   );
 }

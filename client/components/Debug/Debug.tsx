@@ -1,9 +1,11 @@
-import React from 'react';
-import { Session } from 'api/session';
+import React, { useContext } from 'react';
+import { SessionContext } from 'api/session';
 
 import s from './Debug.module.css';
 
-export function Debug({ session }: { session: Session }) {
+export function Debug() {
+  const context = useContext(SessionContext);
+
   return (
     <pre className={s.debug}>
       <button
@@ -15,7 +17,7 @@ export function Debug({ session }: { session: Session }) {
       </button>
       <br />
       {JSON.stringify(
-        session,
+        context,
         (key, value) => {
           if (key == 'clients') return value.size;
           return value;

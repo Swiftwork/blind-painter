@@ -1,5 +1,5 @@
 import sockjs, { Options, OpenEvent, MessageEvent, CloseEvent } from 'sockjs-client';
-import { SessionAction } from './session';
+import { SessionAction, Session } from './session';
 
 export interface SocketEvent {
   type: string;
@@ -32,17 +32,7 @@ export class Socket {
 
   private onMessage = (event: MessageEvent) => {
     const { type, detail }: SocketEvent = JSON.parse(event.data);
-    console.log(type, detail);
-    /*
-    switch (type) {
-      case 'session':
-        this.dispatch({ type: 'session', payload: detail });
-        break;
-      case 'update':
-        this.dispatch({ type: 'update', payload: detail });
-        break;
-    }
-    */
+    this.dispatch({ type, payload: detail } as SessionAction);
   };
 
   private onError = (event: Event) => {};

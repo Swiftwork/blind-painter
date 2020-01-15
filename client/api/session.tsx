@@ -19,16 +19,27 @@ export interface Session {
   connected: boolean;
   rounds: number;
   currentRound: number;
-  time: number;
-  currentTime: number;
+  elapsed: number;
+  turnId: string | undefined;
+  turnOrder: string[];
+  turnDuration: number;
+  turnElapsed: number;
+  hostId: string | undefined;
+  blindId: string | undefined;
+  subject: string | undefined;
   clients: Map<string, Client>;
 }
 
 export type SessionAction =
   | { type: 'reset' }
   | { type: 'socket'; payload: { status: 'connected' | 'disconnected' } }
-  | { type: 'session'; payload: Partial<Session> }
-  | { type: 'update'; payload: { id?: string; points: Point | Point[] } };
+  | { type: 'session'; payload: { session: Partial<Session>; client: Partial<Client> } }
+  | { type: 'start'; payload: { subject: string } }
+  | { type: 'round'; payload: { current: number } }
+  | { type: 'turn'; payload: { clientId: string } }
+  | { type: 'draw'; payload: { clientId?: string; points: Point | Point[] } }
+  | { type: 'guess' }
+  | { type: 'end'; payload: { subject: string; blindId: string } };
 
 export interface SessionProps extends Session {
   dispatch: (action: SessionAction) => void;
@@ -40,9 +51,14 @@ const initialState: Session = Object.assign(
     clientId: '',
     connected: false,
     rounds: 2,
-    currentRound: 1,
-    time: 1000 * 60,
-    currentTime: 0,
+    currentRound: 0,
+    elapsed: 0,
+    turnId: undefined,
+    turnDuration: 1000 * 60,
+    turnElapsed: 0,
+    host: undefined,
+    blindId: undefined,
+    subject: undefined,
     clients: new Map<string, Client>(),
   },
   JSON.parse(sessionStorage.getItem('session') as string, (key, value) => {
@@ -62,22 +78,28 @@ function reducer(state: Session, action: SessionAction): Session {
       return { ...state, connected: action.payload.status == 'connected' ? true : false };
 
     case 'session':
-      const { clients, ...session } = action.payload;
+      const { clients, ...session } = action.payload.session;
       const newState = { ...state, ...session };
+      if (!newState.clientId && action.payload.client.id) newState.clientId = action.payload.client.id;
       if (clients) newState.clients = new Map(clients);
       return newState;
 
-    case 'update':
-      let id = action.payload.id;
+    case 'start':
+      return { ...state, subject: action.payload.subject };
+
+    case 'round':
+      return { ...state, currentRound: action.payload.current };
+
+    case 'turn':
+      return { ...state, turnId: action.payload.clientId };
+
+    case 'draw':
+      let id = action.payload.clientId;
       if (!id) id = state.clientId;
       if (!id) return state;
 
-      const client: Client = state.clients.get(id) || {
-        id: id,
-        name: id,
-        color: Util.intToRGB(Util.hashCode(id)),
-        itterations: [],
-      };
+      const client = state.clients.get(id);
+      if (!client) return state;
 
       let itteration = client.itterations[state.currentRound - 1];
       if (!itteration) client.itterations.push((itteration = []));
@@ -86,7 +108,6 @@ function reducer(state: Session, action: SessionAction): Session {
       else if (action.payload.points) itteration = [...itteration, action.payload.points];
 
       client.itterations[state.currentRound - 1] = itteration;
-
       return { ...state };
 
     default: {

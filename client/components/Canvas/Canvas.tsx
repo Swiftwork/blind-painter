@@ -70,14 +70,14 @@ export class Canvas extends Component<Props, State> {
     if (!this.context.connected) return;
     event.preventDefault();
     this.isDrawing = true;
-    this.context.dispatch({ type: 'update', payload: { points: Canvas.GetCoords(event) } });
+    this.context.dispatch({ type: 'draw', payload: { points: Canvas.GetCoords(event) } });
     this.draw();
   };
 
   onTouchMove = (event: RTouchEvent | RMouseEvent) => {
     event.preventDefault();
     if (this.isDrawing) {
-      this.context.dispatch({ type: 'update', payload: { points: Canvas.GetCoords(event) } });
+      this.context.dispatch({ type: 'draw', payload: { points: Canvas.GetCoords(event) } });
       this.draw();
     }
   };

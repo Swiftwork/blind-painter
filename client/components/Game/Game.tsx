@@ -4,7 +4,7 @@ import { SessionContext, Client } from 'api/session';
 import { Server, SessionClient } from 'api/server';
 import { Socket } from 'api/socket';
 import { Canvas } from 'components/Canvas/Canvas';
-import { Controls } from 'components/Actions/Actions';
+import { Actions } from 'components/Actions/Actions';
 import { Splash } from 'components/Splash/Splash';
 import { Players } from 'components/Players/Players';
 import { Menu } from 'components/Menu/Menu';
@@ -42,7 +42,11 @@ export class Game extends Component<Props, State> {
 
   onSession = ({ code, client }: SessionClient) => {
     this.socket = new Socket('/socket', client.id, this.context.dispatch);
-    this.context.dispatch({ type: 'session', payload: { code, clientId: client.id } });
+    this.context.dispatch({ type: 'session', payload: { session: { code }, client } });
+  };
+
+  onStart = () => {
+    this.socket?.send('start', { code: this.context.code });
   };
 
   private update(client: Client) {
@@ -66,9 +70,9 @@ export class Game extends Component<Props, State> {
         <Canvas />
         <Splash />
         <Players />
-        <Controls />
-        <Menu onConnect={this.onConnect} />
-        <Debug session={this.context} />
+        <Actions />
+        <Menu onConnect={this.onConnect} onStart={this.onStart} />
+        <Debug />
       </>
     );
   }

@@ -17,8 +17,9 @@ class Session {
     this.currentTurn = 0;
     this.turnDuration = 1000 * 60;
     this.turnElapsed = 0;
-    this.subject = undefined;
+    this.hostId = undefined;
     this.blindId = undefined;
+    this.subject = undefined;
     this.clients = new Map();
   }
 
@@ -32,7 +33,7 @@ class Session {
       participate,
       itterations: [],
     };
-    if (!this.clients.size) this.host = id;
+    if (!this.clients.size) this.hostId = id;
     this.clients.set(id, client);
     return client;
   }
@@ -63,10 +64,9 @@ class Session {
       currentRound: this.currentRound,
       elapsed: this.elapsed,
       turnId: this.turnId,
-      currentTurn: this.currentTurn,
       turnDuration: this.turnDuration,
       turnElapsed: this.turnElapsed,
-      host: this.host,
+      hostId: this.hostId,
       clients: Array.from(this.clients.entries()),
     };
   }

@@ -14,10 +14,9 @@ class Socket extends EventEmitter {
     this.socket.on('connection', connection => {
       const socketSession = connection.url.split('/')[3];
       this.connections[socketSession] = connection;
-      this.emit('connected', { socketSession });
+      this.emit('session', { socketSession });
 
       connection.on('close', () => {
-        this.emit('disconnected', { socketSession });
         delete this.connections[socketSession];
       });
 
@@ -36,10 +35,12 @@ class Socket extends EventEmitter {
     if (Array.isArray(include)) {
       for (const socketSession of include) {
         if (Array.isArray(exclude) && exclude.includes(socketSession)) continue;
-        this.connections[socketSession].write(payload);
+        const connection = this.connections[socketSession];
+        if (connection) connection.write(payload);
       }
     } else {
-      this.connections[include].write(payload);
+      const connection = this.connections[include];
+      if (connection) connection.write(payload);
     }
   }
 
@@ -47,7 +48,8 @@ class Socket extends EventEmitter {
     const payload = JSON.stringify({ type, detail });
     for (const socketSession in this.connections) {
       if (Array.isArray(exclude) && exclude.includes(socketSession)) continue;
-      this.connections[socketSession].write(payload);
+      const connection = this.connections[socketSession];
+      if (connection) connection.write(payload);
     }
   }
 }
