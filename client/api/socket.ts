@@ -22,8 +22,8 @@ export class Socket {
     this.socket.addEventListener('close', this.onClose);
   }
 
-  send(event: SocketEvent) {
-    this.socket.send(JSON.stringify(event));
+  send(type: string, detail: any) {
+    this.socket.send(JSON.stringify({ type, detail }));
   }
 
   private onOpen = (event: OpenEvent) => {
@@ -32,6 +32,8 @@ export class Socket {
 
   private onMessage = (event: MessageEvent) => {
     const { type, detail }: SocketEvent = JSON.parse(event.data);
+    console.log(type, detail);
+    /*
     switch (type) {
       case 'session':
         this.dispatch({ type: 'session', payload: detail });
@@ -40,6 +42,7 @@ export class Socket {
         this.dispatch({ type: 'update', payload: detail });
         break;
     }
+    */
   };
 
   private onError = (event: Event) => {};

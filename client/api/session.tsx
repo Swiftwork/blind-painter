@@ -65,13 +65,6 @@ function reducer(state: Session, action: SessionAction): Session {
       const { clients, ...session } = action.payload;
       const newState = { ...state, ...session };
       if (clients) newState.clients = new Map(clients);
-      sessionStorage.setItem(
-        'session',
-        JSON.stringify(newState, (key, value) => {
-          if (key == 'clients') return Array.from(value.entries());
-          return value;
-        }),
-      );
       return newState;
 
     case 'update':
@@ -93,7 +86,7 @@ function reducer(state: Session, action: SessionAction): Session {
       else if (action.payload.points) itteration = [...itteration, action.payload.points];
 
       client.itterations[state.currentRound - 1] = itteration;
-      state.clients.set(id, client);
+
       return { ...state };
 
     default: {
@@ -107,29 +100,6 @@ export function SessionProvider(props: Readonly<{ children?: ReactNode }>) {
   const value = { ...state, dispatch };
 
   return <SessionContext.Provider value={value}>{props.children}</SessionContext.Provider>;
-}
-
-export function SessionDebug({ session }: { session: Session }) {
-  return (
-    <pre style={{ position: 'absolute', top: 0 }}>
-      <button
-        onClick={() => {
-          sessionStorage.removeItem('session');
-          window.location.reload();
-        }}>
-        Clear
-      </button>
-      <br />
-      {JSON.stringify(
-        session,
-        (key, value) => {
-          if (key == 'clients') return value.size;
-          return value;
-        },
-        2,
-      )}
-    </pre>
-  );
 }
 
 export const SessionConsumer = SessionContext.Consumer;

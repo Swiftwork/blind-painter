@@ -1,0 +1,7 @@
+.splash {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  max-height: 75%;
+  pointer-events: none;
+}

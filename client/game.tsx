@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
 
-import { SessionContext, Point, Client, Session, SessionDebug } from './api/session';
+import { SessionContext, Client } from './api/session';
 import { Server, SessionClient } from './api/server';
 import { Socket } from './api/socket';
-import { Canvas } from './canvas';
+import { Canvas } from './components/Canvas/Canvas';
 import { Controls } from './controls';
-import { Splash } from './splash';
+import { Splash } from './components/Splash/Splash';
 import { Players } from './players';
-import { Menu } from './menu';
+import { Menu } from './components/Menu/Menu';
+import { Debug } from './components/Debug/Debug';
 
 interface Props {}
 
@@ -40,17 +41,20 @@ export class Game extends Component<Props, State> {
   };
 
   onSession = ({ code, client }: SessionClient) => {
-    const socketSession = `${code}-${client.id}`;
-    this.socket = new Socket('/socket', socketSession, this.context.dispatch);
+    this.socket = new Socket('/socket', client.id, this.context.dispatch);
     this.context.dispatch({ type: 'session', payload: { code, clientId: client.id } });
   };
 
   private update(client: Client) {
     if (this.socket && this.context.connected && !this.inThrottle) {
-      this.socket.send({
-        type: 'update',
-        detail: { id: client.id, points: client.itterations[this.context.currentRound - 1] },
-      });
+      this.socket.send('update', { id: client.id, points: client.itterations[this.context.currentRound - 1] });
+      sessionStorage.setItem(
+        'session',
+        JSON.stringify(this.context, (key, value) => {
+          if (key == 'clients') return Array.from(value.entries());
+          return value;
+        }),
+      );
       this.inThrottle = true;
       setTimeout(() => (this.inThrottle = false), 50);
     }
@@ -63,8 +67,8 @@ export class Game extends Component<Props, State> {
         <Splash />
         <Players />
         <Controls />
-        {!this.context.connected && <Menu onConnect={this.onConnect} />}
-        <SessionDebug session={this.context} />
+        <Menu onConnect={this.onConnect} />
+        <Debug session={this.context} />
       </>
     );
   }

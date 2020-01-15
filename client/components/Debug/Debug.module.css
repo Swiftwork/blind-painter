@@ -1,0 +1,7 @@
+.debug {
+  position: absolute;
+  bottom: 0;
+  margin: 1rem;
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.9);
+}

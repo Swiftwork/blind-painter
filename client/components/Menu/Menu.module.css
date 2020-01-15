@@ -1,0 +1,28 @@
+.menu {
+  position: absolute;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  top: 8%;
+  width: 100%;
+
+  & .title {
+    width: 100%;
+    text-align: center;
+  }
+
+  & .button {
+    padding: 0.5em;
+    font-size: 1.5em;
+  }
+
+  & .input {
+    padding: 0.5em;
+    width: 8em;
+    font-size: 1.5em;
+    letter-spacing: 4px;
+    text-align: center;
+    border: 2px solid;
+    background-color: rgba(255, 255, 255, 0.5);
+  }
+}
