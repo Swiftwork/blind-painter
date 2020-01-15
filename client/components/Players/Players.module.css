@@ -1,0 +1,12 @@
+.players {
+  position: absolute;
+  display: flex;
+  top: 0;
+  left: 0;
+  width: 100%;
+
+  & .players {
+    flex: 0 1 20%;
+    text-align: center;
+  }
+}

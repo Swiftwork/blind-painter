@@ -1,9 +1,11 @@
 import React from 'react';
 
-import ClearIcon from './assets/icons/clear.svg';
-import UndoIcon from './assets/icons/undo.svg';
-import RedoIcon from './assets/icons/redo.svg';
-import DoneIcon from './assets/icons/done.svg';
+import s from './Actions.module.css';
+
+import ClearIcon from 'assets/icons/clear.svg';
+import UndoIcon from 'assets/icons/undo.svg';
+import RedoIcon from 'assets/icons/redo.svg';
+import DoneIcon from 'assets/icons/done.svg';
 
 interface Props {
   onClear?: () => void;
@@ -14,7 +16,7 @@ interface Props {
 
 export function Controls({ onClear, onUndo, onRedo, onSubmit }: Props) {
   return (
-    <menu style={{ position: 'absolute', top: '0', right: '0' }}>
+    <menu className={s.actions}>
       <ClearIcon onClick={() => onClear} />
       <UndoIcon onClick={() => onUndo} />
       <RedoIcon onClick={() => onRedo} />

@@ -1,6 +1,6 @@
 import React, { Component, createRef, MouseEvent as RMouseEvent, TouchEvent as RTouchEvent } from 'react';
 
-import { SessionContext, Point } from '../../api/session';
+import { SessionContext, Point } from 'api/session';
 
 import canvasTile from 'assets/canvas-small.jpg';
 

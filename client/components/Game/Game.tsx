@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 
-import { SessionContext, Client } from './api/session';
-import { Server, SessionClient } from './api/server';
-import { Socket } from './api/socket';
-import { Canvas } from './components/Canvas/Canvas';
-import { Controls } from './controls';
-import { Splash } from './components/Splash/Splash';
-import { Players } from './players';
-import { Menu } from './components/Menu/Menu';
-import { Debug } from './components/Debug/Debug';
+import { SessionContext, Client } from 'api/session';
+import { Server, SessionClient } from 'api/server';
+import { Socket } from 'api/socket';
+import { Canvas } from 'components/Canvas/Canvas';
+import { Controls } from 'components/Actions/Actions';
+import { Splash } from 'components/Splash/Splash';
+import { Players } from 'components/Players/Players';
+import { Menu } from 'components/Menu/Menu';
+import { Debug } from 'components/Debug/Debug';
 
 interface Props {}
 

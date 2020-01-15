@@ -2,8 +2,9 @@ import { hot } from 'react-hot-loader/root';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { Game } from './game';
-import { SessionProvider } from './api/session';
+import { SessionProvider } from 'api/session';
+
+import { Game } from 'components/Game/Game';
 
 import './main.css';
 
