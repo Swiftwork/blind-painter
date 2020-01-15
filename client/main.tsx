@@ -5,6 +5,8 @@ import ReactDOM from 'react-dom';
 import { Game } from './game';
 import { SessionProvider } from './api/session';
 
+import './main.css';
+
 const main = () => (
   <SessionProvider>
     <Game />

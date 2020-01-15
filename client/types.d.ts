@@ -27,3 +27,13 @@ declare module '*.svg' {
   const src: React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
   export default src;
 }
+
+declare module '*.module.css' {
+  const classes: { [key: string]: string };
+  export default classes;
+}
+
+declare module '*.css' {
+  const src: string;
+  export default src;
+}

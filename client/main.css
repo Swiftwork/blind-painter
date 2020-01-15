@@ -1,0 +1,10 @@
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Permanent Marker', cursive;
+}
+
+* {
+  box-sizing: border-box;
+}
