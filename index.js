@@ -29,11 +29,14 @@ if (process.env.NODE_ENV === 'development') {
 // ENDPOINTS
 //------------------------------------------------------------------------------------
 
-const { socket } = require('./server/socket');
-socket(server);
+const { sessions, endpoints } = require('./server/sessions');
+app.use('/sessions', endpoints);
 
-const { endpoint } = require('./server/sessions');
-app.use('/sessions', endpoint);
+const { Socket } = require('./server/socket');
+const socket = new Socket(server);
+
+const { Logic } = require('./server/logic');
+const logic = new Logic(sessions, socket);
 
 server.listen(5200, '0.0.0.0', () => {
   console.log(' [*] Listening on 0.0.0.0:5200');
