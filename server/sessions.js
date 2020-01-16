@@ -9,6 +9,7 @@ const sessions = new Map();
 class Session {
   constructor(code) {
     this.code = code;
+    this.status = 'lobby';
     this.rounds = 2;
     this.currentRound = 0;
     this.elapsed = 0;
@@ -24,7 +25,8 @@ class Session {
   }
 
   newClient(name, participate = true) {
-    const id = `${this.code}-${hashids.encode(this.clients.size)}`;
+    let id = hashids.encode((Date.now() + 1) % (1000 * 60 * 60));
+    id = `${this.code}-${id}`;
     const client = {
       id,
       name,
@@ -46,6 +48,10 @@ class Session {
     return this.clients.delete(id);
   }
 
+  /** Get a list of client ids
+   * @param {boolean} [participant] filter list. if omitted get all
+   * @returns {string[]} list of client ids
+   */
   getIds(participant) {
     return Array.from(this.clients, ([_, client]) => {
       if (typeof participant === 'boolean' && participant === client.participate) {
@@ -60,6 +66,7 @@ class Session {
   toJSON() {
     return {
       code: this.code,
+      status: this.status,
       rounds: this.rounds,
       currentRound: this.currentRound,
       elapsed: this.elapsed,
@@ -80,8 +87,7 @@ function getSession(code, create = true) {
   if (typeof code === 'string') {
     session = sessions.get(code);
   } else if (create) {
-    const date = Date.now();
-    code = hashids.encode(date % (1000 * 60 * 60));
+    code = hashids.encode(Date.now() % (1000 * 60 * 60));
     sessions.set(code, (session = new Session(code)));
   }
   return { code, session };

@@ -22,7 +22,6 @@ class Socket extends EventEmitter {
 
       connection.on('data', event => {
         const { type, detail } = JSON.parse(event);
-        console.log(type, detail);
         this.emit(type, { socketSession, ...detail });
       });
     });
@@ -30,17 +29,36 @@ class Socket extends EventEmitter {
     this.socket.installHandlers(server);
   }
 
-  broadcastTo(include, type, detail, exclude) {
+  getConnection(socketSession) {
+    return this.connections[socketSession];
+  }
+
+  close(socketSessions, code = 410, reason = 'Cleanup') {
+    const close = socketSession => {
+      const connection = this.connections[socketSession];
+      if (connection) connection.close(code, reason);
+    };
+    if (Array.isArray(socketSessions)) {
+      for (const socketSession of socketSessions) close(socketSession);
+    } else {
+      close(socketSessions);
+    }
+  }
+
+  broadcastTo(socketSessions, type, detail, exclude) {
     const payload = JSON.stringify({ type, detail });
-    if (Array.isArray(include)) {
-      for (const socketSession of include) {
+    const send = socketSession => {
+      const connection = this.connections[socketSession];
+      if (connection) connection.write(payload);
+    };
+
+    if (Array.isArray(socketSessions)) {
+      for (const socketSession of socketSessions) {
         if (Array.isArray(exclude) && exclude.includes(socketSession)) continue;
-        const connection = this.connections[socketSession];
-        if (connection) connection.write(payload);
+        send(socketSession);
       }
     } else {
-      const connection = this.connections[include];
-      if (connection) connection.write(payload);
+      send(socketSessions);
     }
   }
 

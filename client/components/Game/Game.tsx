@@ -23,11 +23,17 @@ export class Game extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props);
+  }
 
-    this.state = {};
+  componentDidMount() {
+    if (this.context.code && this.context.clientId) {
+      const client = this.context.clients.get(this.context.clientId);
+      if (client) this.onSession({ code: this.context.code, client });
+    }
   }
 
   componentDidUpdate() {
+    console.log('update');
     const client = this.context.clients.get(this.context.clientId);
     if (client) this.update(client);
   }
@@ -41,7 +47,8 @@ export class Game extends Component<Props, State> {
   };
 
   onSession = ({ code, client }: SessionClient) => {
-    this.socket = new Socket('/socket', client.id, this.context.dispatch);
+    this.socket = new Socket(this.context.dispatch);
+    this.socket.open('/socket', client.id);
     this.context.dispatch({ type: 'session', payload: { session: { code }, client } });
   };
 
@@ -50,15 +57,18 @@ export class Game extends Component<Props, State> {
   };
 
   private update(client: Client) {
-    if (this.socket && this.context.connected && !this.inThrottle) {
-      this.socket.send('update', { id: client.id, points: client.itterations[this.context.currentRound - 1] });
-      sessionStorage.setItem(
-        'session',
-        JSON.stringify(this.context, (key, value) => {
-          if (key == 'clients') return Array.from(value.entries());
-          return value;
-        }),
-      );
+    sessionStorage.setItem(
+      'session',
+      JSON.stringify(this.context, (key, value) => {
+        if (key == 'connected') return undefined;
+        if (key == 'status') return undefined;
+        if (key == 'clients') return Array.from(value.entries());
+        return value;
+      }),
+    );
+
+    if (this.socket && this.context.status === 'started' && !this.inThrottle) {
+      this.socket.send('draw', { points: client.itterations[this.context.currentRound - 1] });
       this.inThrottle = true;
       setTimeout(() => (this.inThrottle = false), 50);
     }

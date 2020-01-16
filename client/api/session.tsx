@@ -15,13 +15,13 @@ export interface Client {
 
 export interface Session {
   code: string;
+  status: 'lobby' | 'started' | 'guessing' | 'ended';
   clientId: string;
   connected: boolean;
   rounds: number;
   currentRound: number;
   elapsed: number;
   turnId: string | undefined;
-  turnOrder: string[];
   turnDuration: number;
   turnElapsed: number;
   hostId: string | undefined;
@@ -45,27 +45,22 @@ export interface SessionProps extends Session {
   dispatch: (action: SessionAction) => void;
 }
 
-const initialState: Session = Object.assign(
-  {
-    code: '',
-    clientId: '',
-    connected: false,
-    rounds: 2,
-    currentRound: 0,
-    elapsed: 0,
-    turnId: undefined,
-    turnDuration: 1000 * 60,
-    turnElapsed: 0,
-    host: undefined,
-    blindId: undefined,
-    subject: undefined,
-    clients: new Map<string, Client>(),
-  },
-  JSON.parse(sessionStorage.getItem('session') as string, (key, value) => {
-    if (key == 'clients') return new Map(value);
-    return value;
-  }),
-);
+const initialState: Session = {
+  code: '',
+  status: 'lobby',
+  clientId: '',
+  connected: false,
+  rounds: 2,
+  currentRound: 0,
+  elapsed: 0,
+  turnId: undefined,
+  turnDuration: 1000 * 60,
+  turnElapsed: 0,
+  hostId: undefined,
+  blindId: undefined,
+  subject: undefined,
+  clients: new Map<string, Client>(),
+};
 
 export const SessionContext = createContext(initialState as SessionProps);
 
@@ -85,7 +80,7 @@ function reducer(state: Session, action: SessionAction): Session {
       return newState;
 
     case 'start':
-      return { ...state, subject: action.payload.subject };
+      return { ...state, status: 'started', subject: action.payload.subject };
 
     case 'round':
       return { ...state, currentRound: action.payload.current };
@@ -110,6 +105,12 @@ function reducer(state: Session, action: SessionAction): Session {
       client.itterations[state.currentRound - 1] = itteration;
       return { ...state };
 
+    case 'guess':
+      return { ...state };
+
+    case 'end':
+      return { ...state };
+
     default: {
       throw new Error(`Unhandled action type: ${(action as any).type}`);
     }
@@ -117,7 +118,17 @@ function reducer(state: Session, action: SessionAction): Session {
 }
 
 export function SessionProvider(props: Readonly<{ children?: ReactNode }>) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(
+    reducer,
+    Object.assign(
+      {},
+      initialState,
+      JSON.parse(sessionStorage.getItem('session') as string, (key, value) => {
+        if (key == 'clients') return new Map(value);
+        return value;
+      }),
+    ),
+  );
   const value = { ...state, dispatch };
 
   return <SessionContext.Provider value={value}>{props.children}</SessionContext.Provider>;

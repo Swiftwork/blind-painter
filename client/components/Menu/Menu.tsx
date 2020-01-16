@@ -9,7 +9,7 @@ interface Props {
 }
 
 interface State {
-  stage: 'code' | 'name' | 'lobby' | 'game';
+  stage: 'code' | 'name' | 'lobby';
   host: boolean;
   name: string;
   code: string;
@@ -28,6 +28,15 @@ export class Menu extends Component<Props, State> {
       name: '',
       code: '',
     };
+  }
+
+  componentDidMount() {
+    const client = this.context.clients.get(this.context.clientId);
+    if (client)
+      this.setState({
+        stage: 'lobby',
+        host: this.context.clientId == this.context.hostId,
+      });
   }
 
   public codeMenu() {
@@ -102,7 +111,6 @@ export class Menu extends Component<Props, State> {
             className={s.button}
             type="button"
             onClick={() => {
-              this.setState({ stage: 'game' });
               this.props.onStart();
             }}>
             Start the game
@@ -124,12 +132,11 @@ export class Menu extends Component<Props, State> {
       case 'lobby':
         return this.lobbyMenu();
     }
-    return undefined;
   }
 
   public render() {
     return (
-      this.state.stage !== 'game' && (
+      this.context.status === 'lobby' && (
         <form className={s.menu}>
           <h1 className={s.title}>Blind Painter</h1>
           {this.renderMenu()}
