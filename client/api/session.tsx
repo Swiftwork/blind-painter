@@ -1,5 +1,4 @@
 import React, { createContext, ReactNode, useReducer } from 'react';
-import { Util } from './util';
 
 export interface Point {
   x: number;
@@ -15,7 +14,7 @@ export interface Client {
 
 export interface Session {
   code: string;
-  status: 'lobby' | 'started' | 'guessing' | 'ended';
+  status: 'none' | 'lobby' | 'started' | 'guessing' | 'ended';
   clientId: string;
   connected: boolean;
   rounds: number;
@@ -47,7 +46,7 @@ export interface SessionProps extends Session {
 
 const initialState: Session = {
   code: '',
-  status: 'lobby',
+  status: 'none',
   clientId: '',
   connected: false,
   rounds: 2,

@@ -33,7 +33,6 @@ export class Game extends Component<Props, State> {
   }
 
   componentDidUpdate() {
-    console.log('update');
     const client = this.context.clients.get(this.context.clientId);
     if (client) this.update(client);
   }

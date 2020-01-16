@@ -67,7 +67,7 @@ export class Canvas extends Component<Props, State> {
   };
 
   onTouchStart = (event: RTouchEvent | RMouseEvent) => {
-    if (!this.context.connected) return;
+    if (this.context.turnId !== this.context.clientId) return;
     event.preventDefault();
     this.isDrawing = true;
     this.context.dispatch({ type: 'draw', payload: { points: Canvas.GetCoords(event) } });
@@ -75,6 +75,7 @@ export class Canvas extends Component<Props, State> {
   };
 
   onTouchMove = (event: RTouchEvent | RMouseEvent) => {
+    if (this.context.turnId !== this.context.clientId) return;
     event.preventDefault();
     if (this.isDrawing) {
       this.context.dispatch({ type: 'draw', payload: { points: Canvas.GetCoords(event) } });

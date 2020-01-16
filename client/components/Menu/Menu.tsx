@@ -136,7 +136,7 @@ export class Menu extends Component<Props, State> {
 
   public render() {
     return (
-      this.context.status === 'lobby' && (
+      (this.context.status === 'none' || this.context.status === 'lobby') && (
         <form className={s.menu}>
           <h1 className={s.title}>Blind Painter</h1>
           {this.renderMenu()}

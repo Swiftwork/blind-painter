@@ -1,5 +1,6 @@
 const express = require('express');
 const Hashids = require('hashids/cjs');
+const { Util } = require('./util');
 
 const endpoints = express.Router();
 const hashids = new Hashids('', 5, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
@@ -30,7 +31,7 @@ class Session {
     const client = {
       id,
       name,
-      color: '#000',
+      color: Util.intToRGB(Util.hashCode(id)),
       guess: undefined,
       participate,
       itterations: [],

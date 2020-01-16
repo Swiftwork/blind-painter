@@ -12,7 +12,7 @@ class Logic {
     socket.on('session', this.onSession);
     socket.on('settings', () => {});
     socket.on('start', this.onStart);
-    socket.on('draw', () => {});
+    socket.on('draw', this.onDraw);
     // "round" only broadcasted
     socket.on('turn', this.onTurn);
     socket.on('guess', () => {});
@@ -68,7 +68,7 @@ class Logic {
     console.log('logic onDraw', socketSession);
 
     const { session, client } = this.getSessionClient(socketSession);
-    if (session && client && points && session.turn === socketSession) {
+    if (session && client && points && session.turnId === socketSession) {
       let itteration = client.itterations[session.currentRound - 1];
       if (!itteration) client.itterations.push((itteration = []));
 
@@ -87,7 +87,7 @@ class Logic {
   onTurn = ({ socketSession }) => {
     console.log('logic onTurn', socketSession);
     const { session } = this.getSessionClient(socketSession);
-    if (session.turn !== socketSession) return; // Only current client may advance turn
+    if (session.turnId !== socketSession) return; // Only current client may advance turn
 
     this.advanceTurn(session);
   };
