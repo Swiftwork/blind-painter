@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { SessionContext } from 'api/session';
 
+import { SessionContext } from 'context/store';
+
 import s from './Menu.module.css';
 
 interface Props {

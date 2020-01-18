@@ -1,8 +1,11 @@
 import React, { Component } from 'react';
 
-import { SessionContext, Client } from 'api/session';
+import { SessionContext, storeSession } from 'context/store';
+import { Client, Stage } from 'context/interfaces';
+
 import { Server, SessionClient } from 'api/server';
 import { Socket } from 'api/socket';
+
 import { Canvas } from 'components/Canvas/Canvas';
 import { Actions } from 'components/Actions/Actions';
 import { Splash } from 'components/Splash/Splash';

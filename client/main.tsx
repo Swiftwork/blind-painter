@@ -2,7 +2,7 @@ import { hot } from 'react-hot-loader/root';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { SessionProvider } from 'api/session';
+import { SessionProvider } from 'context/provider';
 
 import { Game } from 'components/Game/Game';
 

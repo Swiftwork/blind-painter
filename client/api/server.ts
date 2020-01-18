@@ -1,4 +1,4 @@
-import { Client } from './session';
+import { Client } from 'context/interfaces';
 
 export interface SessionClient {
   code: string;
@@ -16,7 +16,12 @@ export class Server {
         name,
         participate,
       }),
-    }).then(res => res.json());
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(res.statusText);
+        return res;
+      })
+      .then(res => res.json());
   }
 
   static JoinSession(code: string, name: string, participate: boolean): Promise<SessionClient> {
@@ -29,6 +34,11 @@ export class Server {
         name,
         participate,
       }),
-    }).then(res => res.json());
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(res.statusText);
+        return res;
+      })
+      .then(res => res.json());
   }
 }
