@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { SessionContext } from 'api/session';
+import QRCode from 'qrcode';
 
 import { SessionContext } from 'context/store';
 
@@ -7,11 +7,12 @@ import s from './Menu.module.css';
 
 interface Props {
   onConnect(participate: boolean, name: string, code?: string): void;
-  onStart(code?: string): void;
+  onStart(): void;
+  onQuit(): void;
 }
 
 interface State {
-  stage: 'code' | 'name' | 'lobby';
+  stage: 'code' | 'name';
   host: boolean;
   name: string;
   code: string;
@@ -21,14 +22,19 @@ export class Menu extends Component<Props, State> {
   static contextType = SessionContext;
   declare context: React.ContextType<typeof SessionContext>;
 
+  private qrCanvas = React.createRef<HTMLCanvasElement>();
+  private qrRendered = '';
+
   constructor(props: Props) {
     super(props);
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code') || '';
 
     this.state = {
-      stage: 'code',
+      stage: code ? 'name' : 'code',
       host: false,
       name: '',
-      code: '',
+      code,
     };
   }
 
@@ -36,18 +42,33 @@ export class Menu extends Component<Props, State> {
     const client = this.context.clients.get(this.context.clientId);
     if (client)
       this.setState({
-        stage: 'lobby',
+        stage: 'name',
         host: this.context.clientId == this.context.hostId,
+        name: client.name,
+        code: this.context.code,
       });
+  }
+
+  componentDidUpdate() {
+    if (this.qrCanvas.current && this.qrRendered !== this.context.code) {
+      this.setState({ stage: 'code' });
+      QRCode.toCanvas(this.qrCanvas.current, `${window.location.href.split('?')[0]}?code=${this.context.code}`, err => {
+        if (err) return console.warn('Failed to render QR code');
+        this.qrRendered = this.context.code;
+      });
+    }
   }
 
   public codeMenu() {
     return (
       <>
-        <button className={s.button} type="button" onClick={() => this.setState({ stage: 'name', host: true })}>
+        <button
+          className={s.button}
+          type="button"
+          onClick={() => this.setState({ stage: 'name', host: true, code: '' })}>
           Host venue
         </button>
-        <menu style={{ margin: 0 }}>
+        <menu className={s.group}>
           <input
             className={s.input}
             placeholder="code"
@@ -73,7 +94,7 @@ export class Menu extends Component<Props, State> {
         <input
           className={s.input}
           placeholder="name"
-          style={{ marginBottom: '2rem', maxWidth: '12em' }}
+          style={{ maxWidth: '12em' }}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
@@ -87,7 +108,6 @@ export class Menu extends Component<Props, State> {
           className={s.button}
           type="button"
           onClick={() => {
-            this.setState({ stage: 'lobby' });
             this.props.onConnect(true, this.state.name, this.state.code);
           }}>
           Join as painter
@@ -96,7 +116,6 @@ export class Menu extends Component<Props, State> {
           className={s.button}
           type="button"
           onClick={() => {
-            this.setState({ stage: 'lobby' });
             this.props.onConnect(false, this.state.name, this.state.code);
           }}>
           Join as critic
@@ -109,16 +128,15 @@ export class Menu extends Component<Props, State> {
     return (
       this.state.host && (
         <>
-          <button
-            className={s.button}
-            type="button"
-            onClick={() => {
-              this.props.onStart();
-            }}>
+          <canvas ref={this.qrCanvas} />
+          <h2 className={s.code}>
+            Code: <em>{this.context.code}</em>
+          </h2>
+          <button className={s.button} type="button" onClick={this.props.onStart}>
             Start the game
           </button>
-          <button className={s.button} type="button">
-            Settings
+          <button className={s.button} type="button" onClick={this.props.onQuit}>
+            Quit
           </button>
         </>
       )
@@ -126,24 +144,24 @@ export class Menu extends Component<Props, State> {
   }
 
   public renderMenu() {
-    switch (this.state.stage) {
-      case 'code':
-        return this.codeMenu();
-      case 'name':
-        return this.nameMenu();
-      case 'lobby':
-        return this.lobbyMenu();
+    if (this.context.stage == 'lobby') {
+      return this.lobbyMenu();
+    } else {
+      switch (this.state.stage) {
+        case 'code':
+          return this.codeMenu();
+        case 'name':
+          return this.nameMenu();
+      }
     }
   }
 
   public render() {
     return (
-      (this.context.status === 'none' || this.context.status === 'lobby') && (
-        <form className={s.menu}>
-          <h1 className={s.title}>Blind Painter</h1>
-          {this.renderMenu()}
-        </form>
-      )
+      <form className={s.menu}>
+        <h1 className={s.title}>Blind Painter</h1>
+        {this.renderMenu()}
+      </form>
     );
   }
 }

@@ -3,12 +3,24 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  top: 8%;
+  top: 8rem;
   width: 100%;
 
   & .title {
     width: 100%;
+    font-size: 3em;
     text-align: center;
+  }
+
+  & .code {
+    width: 100%;
+    text-align: center;
+
+    & em {
+      font-size: 2em;
+      font-style: normal;
+      letter-spacing: 4px;
+    }
   }
 
   & .break {
@@ -16,12 +28,13 @@
   }
 
   & .button {
-    margin: 0 0.5em;
+    margin: 0.5rem;
     padding: 0.5em;
     font-size: 1.5em;
   }
 
   & .input {
+    margin: 0.5rem;
     padding: 0.5em;
     width: 100%;
     max-width: 8em;
@@ -29,6 +42,17 @@
     letter-spacing: 4px;
     text-align: center;
     border: 2px solid;
-    background-color: rgba(255, 255, 255, 0.5);
+  }
+
+  & .group {
+    margin: 0.5rem 3rem;
+    padding: 0;
+    text-align: center;
+
+    & > * {
+      margin: 0;
+      margin-left: 0.2rem;
+      margin-right: 0.2rem;
+    }
   }
 }
