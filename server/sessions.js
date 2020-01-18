@@ -65,6 +65,17 @@ class Session {
     }).filter(id => !!id);
   }
 
+  getGuesses() {
+    const suspects = [];
+    const guesses = [];
+    this.clients.forEach(client => {
+      if (!client.guess) return;
+      if (client.participant && client.id !== this.blindId) return suspects.push(client.guess);
+      guesses.push(client.guess);
+    });
+    return { suspects, guesses };
+  }
+
   toJSON() {
     return {
       code: this.code,
@@ -76,7 +87,10 @@ class Session {
       turnDuration: this.turnDuration,
       turnElapsed: this.turnElapsed,
       hostId: this.hostId,
-      clients: Array.from(this.clients.entries()),
+      clients: Array.from(this.clients.entries(), ([id, client]) => {
+        const { guess, ...strippedClient } = client;
+        return [id, strippedClient];
+      }),
     };
   }
 }
@@ -111,6 +125,7 @@ endpoints.put('/:code', function(req, res) {
   if (!req.body.name) return errorMessage(res, 400, `You must supply a name in request body`);
   const { code, session } = getSession(req.params.code, false);
   if (!session) return errorMessage(res, 404, `Session ${code} does not exist`);
+  if (session.stage !== 'lobby') return errorMessage(res, 404, `Session ${code} has already started`);
   const client = session.newClient(req.body.name, req.body.participate);
   res.send({ code, client });
 });

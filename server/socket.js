@@ -14,10 +14,11 @@ class Socket extends EventEmitter {
     this.socket.on('connection', connection => {
       const socketSession = connection.url.split('/')[3];
       this.connections[socketSession] = connection;
-      this.emit('session', { socketSession });
+      this.emit('SESSION', { socketSession });
+      this.emit('CONNECTION', { socketSession, status: 'connected' });
 
       connection.on('close', () => {
-        this.emit('disconnected', { socketSession });
+        this.emit('CONNECTION', { socketSession, status: 'disconnected' });
         delete this.connections[socketSession];
       });
 

@@ -26,18 +26,19 @@ export class Socket {
     if (this.socket) this.socket.close();
   }
 
-  send(type: string, detail: any) {
+  send(type: string, detail?: any) {
     if (this.socket) this.socket.send(JSON.stringify({ type, detail }));
   }
 
   private onOpen = (event: OpenEvent) => {
-    this.dispatch({ type: 'socket', payload: { status: 'connected' } });
+    this.dispatch({ type: 'SOCKET', payload: { status: 'connected' } });
   };
 
   private onMessage = (event: MessageEvent) => {
     const { type, detail }: SocketEvent = JSON.parse(event.data);
+    console.log(`Socket: ${type}`);
     if (type != 'error') {
-      this.dispatch({ type, payload: detail } as SessionAction);
+      this.dispatch({ type: `RECEIVE_${type}`, payload: detail } as SessionAction);
     } else {
       console.warn(`[SOCKET | ${detail.code}]: ${detail.reason}`);
     }
@@ -51,7 +52,7 @@ export class Socket {
       this.socket.removeEventListener('close', this.onClose);
       this.socket = undefined;
     }
-    this.dispatch({ type: 'socket', payload: { status: 'disconnected' } });
-    this.dispatch({ type: 'reset' });
+    this.dispatch({ type: 'SOCKET', payload: { status: 'disconnected' } });
+    this.dispatch({ type: 'RESET' });
   };
 }

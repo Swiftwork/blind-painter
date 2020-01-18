@@ -5,7 +5,7 @@ import { SessionContext } from 'context/store';
 
 import s from './Canvas.module.css';
 
-import canvasTile from 'assets/canvas-small.jpg';
+//import canvasTile from 'assets/canvas-small.jpg';
 
 interface Props {}
 
@@ -37,6 +37,7 @@ export class Canvas extends Component<Props, State> {
       height: this.baseHeight,
     };
 
+    /*
     // Load the image
     const img = new Image();
     img.src = canvasTile;
@@ -45,6 +46,7 @@ export class Canvas extends Component<Props, State> {
       this.pattern = this.ctx.createPattern(img, 'repeat');
       this.draw();
     };
+    */
   }
 
   componentDidMount() {
@@ -83,7 +85,7 @@ export class Canvas extends Component<Props, State> {
     if (this.context.turnId !== this.context.clientId) return;
     event.preventDefault();
     this.isDrawing = true;
-    this.context.dispatch({ type: 'draw', payload: { points: Canvas.GetCoords(event, this.state.scale) } });
+    this.context.dispatch({ type: 'DRAW_START', payload: { points: Canvas.GetCoords(event, this.state.scale) } });
     this.draw();
   };
 
@@ -91,7 +93,7 @@ export class Canvas extends Component<Props, State> {
     if (this.context.turnId !== this.context.clientId) return;
     event.preventDefault();
     if (this.isDrawing) {
-      this.context.dispatch({ type: 'draw', payload: { points: Canvas.GetCoords(event, this.state.scale) } });
+      this.context.dispatch({ type: 'DRAW', payload: { points: Canvas.GetCoords(event, this.state.scale) } });
       this.draw();
     }
   };
@@ -124,7 +126,7 @@ export class Canvas extends Component<Props, State> {
 
     if (this.pattern) {
       this.ctx.fillStyle = this.pattern;
-      this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+      //this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
       this.ctx.fillStyle = '#000';
     } else {
@@ -134,14 +136,12 @@ export class Canvas extends Component<Props, State> {
     this.ctx.lineWidth = 6 * this.state.scale;
     this.ctx.lineJoin = this.ctx.lineCap = 'round';
 
-    //this.ctx.globalCompositeOperation = 'overlay';
     for (const [_, client] of this.context.clients) {
       for (const itteration of client.itterations) {
         if (!itteration.length) continue;
         this.drawLine(itteration.flat(), client.color);
       }
     }
-    this.ctx.globalCompositeOperation = 'source-over';
   }
 
   drawLine(points: Point[], color: string) {

@@ -9,15 +9,17 @@ class Logic {
     this.tick = 1000;
 
     /* EVENTS */
-    socket.on('session', this.onSession);
-    socket.on('disconnected', this.onDisconnected);
-    socket.on('settings', () => {});
-    socket.on('start', this.onStart);
-    socket.on('draw', this.onDraw);
+    socket.on('SESSION', this.onSession);
+    socket.on('CONNECTION', this.onConnection);
+    socket.on('SETTINGS', () => {});
+    socket.on('START', this.onStart);
+    socket.on('DRAW_START', this.onDrawStart);
+    socket.on('DRAW', this.onDraw);
+    socket.on('UNDO', this.onUndo);
     // "round" only broadcasted
-    socket.on('turn', this.onTurn);
-    socket.on('guess', () => {});
-    socket.on('end', () => {});
+    socket.on('TURN', this.onTurn);
+    socket.on('GUESS', this.onGuess);
+    socket.on('END', this.onEnd);
     // "reveal" only broadcasted
   }
 
@@ -35,19 +37,24 @@ class Logic {
     console.log('logic onSession', socketSession);
     const { session, client } = this.getSessionClient(socketSession);
     if (session && client) {
-      client.connected = true;
-      this.socket.broadcastTo(session.getIds(), 'session', { session, client });
+      if (session.stage == 'lobby') this.socket.broadcastTo(session.getIds(), 'SESSION', { session, client });
+      else this.socket.broadcastTo(socketSession, 'SESSION', { session, client });
     } else {
       this.socket.getConnection(socketSession).close(404, 'Session does not exist');
     }
   };
 
-  onDisconnected = ({ socketSession }) => {
-    console.log('logic onDisconnected', socketSession);
+  onConnection = ({ socketSession, status }) => {
+    console.log('logic onConnection', socketSession);
     const { session, client } = this.getSessionClient(socketSession);
     if (session && client) {
-      client.connected = false;
-      this.socket.broadcastTo(session.getIds(), 'disconnected', { session, client }, [socketSession]);
+      client.connected = status == 'connected';
+      this.socket.broadcastTo(
+        session.getIds(),
+        'CONNECTION',
+        { clientId: socketSession, status },
+        status == 'disconnected' ? [socketSession] : undefined,
+      );
     }
   };
 
@@ -56,38 +63,72 @@ class Logic {
     const { session } = this.getSessionClient(socketSession);
     if (session.hostId !== socketSession) return; // Only host can start the game
 
-    const ids = session.getIds();
     const participantIds = session.getIds(true);
+    const criticIds = session.getIds(false);
     session.turnOrder = Util.shuffle(participantIds);
     session.blindId = Util.random(participantIds);
     session.subject = Util.random(movies);
     session.stage = 'started';
-    this.socket.broadcastTo(ids, 'start', { subject: session.subject }, [session.blindId]);
-    this.socket.broadcastTo(session.blindId, 'start', { subject: 'You are the blind painter' });
-    this.advanceRound(session);
+    this.socket.broadcastTo(participantIds, 'START', { subject: session.subject, blind: false }, [session.blindId]);
+    this.socket.broadcastTo(session.blindId, 'START', { subject: 'You are the blind painter', blind: true });
+    this.socket.broadcastTo(criticIds, 'START', { subject: 'You are a critic', blind: true });
+    setTimeout(() => {
+      this.advanceRound(session);
+    }, 1000 * 15);
+  };
+
+  onDrawStart = ({ socketSession, points }) => {
+    const { session, client } = this.getSessionClient(socketSession);
+    if (!session || !client || session.turnId !== socketSession) return;
+
+    let itteration = client.itterations[session.currentRound - 1];
+    if (!itteration) client.itterations.push((itteration = []));
+
+    // Create a new segment
+    if (Array.isArray(points)) itteration.push(points);
+    else itteration.push([points]);
+
+    const ids = session.getIds();
+    this.socket.broadcastTo(ids, 'DRAW_START', { clientId: socketSession, points }, [socketSession]);
   };
 
   onDraw = ({ socketSession, points }) => {
     const { session, client } = this.getSessionClient(socketSession);
-    if (session && client && points && session.turnId === socketSession) {
-      let itteration = client.itterations[session.currentRound - 1];
-      if (!itteration) client.itterations.push((itteration = []));
+    if (!session || !client || session.turnId !== socketSession) return;
 
-      if (Array.isArray(points)) itteration.push([points]);
-      else itteration.push([points]);
+    const itteration = client.itterations[session.currentRound - 1];
+    if (!itteration) return;
 
-      console.log(itteration);
+    const segment = itteration[itteration.length - 1];
+    if (!segment) return;
 
-      client.itterations[session.currentRound - 1] = itteration;
+    // Append to last segment
+    if (Array.isArray(points)) segment.push(...points);
+    else segment.push(points);
 
-      const ids = session.getIds();
-      this.socket.broadcastTo(ids, 'draw', { clientId: socketSession, points }, [socketSession]);
-    }
+    const ids = session.getIds();
+    this.socket.broadcastTo(ids, 'DRAW', { clientId: socketSession, points }, [socketSession]);
+  };
+
+  onUndo = ({ socketSession, count }) => {
+    const { session, client } = this.getSessionClient(socketSession);
+    if (!session || !client || session.turnId !== socketSession) return;
+
+    const itteration = client.itterations[session.currentRound - 1];
+    if (!itteration) return;
+
+    // Remove count segments
+    count = count || Infinity;
+    itteration.splice(-1 * count, count);
+
+    const ids = session.getIds();
+    this.socket.broadcastTo(ids, 'UNDO', { clientId: socketSession, count }, [socketSession]);
   };
 
   onTurn = ({ socketSession }) => {
     console.log('logic onTurn', socketSession);
     const { session } = this.getSessionClient(socketSession);
+    if (session.stage !== 'started') return;
     if (session.turnId !== socketSession) return; // Only current client may advance turn
 
     this.advanceTurn(session);
@@ -97,7 +138,7 @@ class Logic {
     session.currentRound++;
     if (session.currentRound <= session.rounds) {
       console.log('logic advanceRound', session.currentRound);
-      this.socket.broadcastTo(session.getIds(), 'round', { current: session.currentRound });
+      this.socket.broadcastTo(session.getIds(), 'ROUND', { current: session.currentRound });
       this.advanceTurn(session);
     } else {
       this.advanceGuess(session);
@@ -113,7 +154,7 @@ class Logic {
       const clientId = session.turnOrder[session.currentTurn - 1];
       session.turnId = clientId;
       console.log('logic advanceTurn', session.currentTurn);
-      this.socket.broadcastTo(session.getIds(), 'turn', { clientId });
+      this.socket.broadcastTo(session.getIds(), 'TURN', { clientId });
 
       this.timers[session.code] = setInterval(() => {
         session.elapsed += this.tick;
@@ -130,12 +171,38 @@ class Logic {
     clearInterval(this.timers[session.code]);
     console.log('logic advanceGuess');
     session.stage = 'guessing';
-    this.socket.broadcastTo(session.getIds(), 'guess');
+    session.turnId = undefined;
+    session.turnElapsed = 0;
+    this.socket.broadcastTo(session.getIds(), 'GUESS');
 
     this.timers[session.code] = setInterval(() => {
       session.elapsed += this.tick;
       session.turnElapsed += this.tick;
       if (session.turnElapsed > session.turnDuration) this.endGame(session);
+    }, this.tick);
+  }
+
+  onGuess = ({ socketSession, guess }) => {
+    console.log('logic onGuess', socketSession);
+    const { session, client } = this.getSessionClient(socketSession);
+    if (session.stage == 'guessing') client.guess = guess;
+  };
+
+  endGame(session) {
+    clearInterval(this.timers[session.code]);
+    console.log('logic endGame');
+    session.stage = 'ended';
+    session.turnElapsed = 0;
+    this.socket.broadcastTo(session.getIds(), 'END', {
+      subject: session.subject,
+      blindId: session.blindId,
+      ...session.getGuesses(),
+    });
+
+    this.timers[session.code] = setInterval(() => {
+      session.elapsed += this.tick;
+      session.turnElapsed += this.tick;
+      if (session.turnElapsed > session.turnDuration) this.cleanup(session);
     }, this.tick);
   }
 
@@ -146,19 +213,6 @@ class Logic {
 
     this.endGame();
   };
-
-  endGame(session) {
-    clearInterval(this.timers[session.code]);
-    console.log('logic endGame');
-    session.stage = 'ended';
-    this.socket.broadcastTo(session.getIds(), 'end', { subject: session.subject, blindId: session.blindId });
-
-    this.timers[session.code] = setInterval(() => {
-      session.elapsed += this.tick;
-      session.turnElapsed += this.tick;
-      if (session.turnElapsed > session.turnDuration) this.cleanup(session);
-    }, this.tick);
-  }
 
   cleanup(session) {
     clearInterval(this.timers[session.code]);

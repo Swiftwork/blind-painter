@@ -1,17 +1,20 @@
 import React, { Component } from 'react';
 
 import { SessionContext, storeSession } from 'context/store';
-import { Client, Stage } from 'context/interfaces';
+import { Stage } from 'context/interfaces';
 
 import { Server, SessionClient } from 'api/server';
-import { Socket } from 'api/socket';
+import { Util } from 'api/util';
 
 import { Canvas } from 'components/Canvas/Canvas';
 import { Actions } from 'components/Actions/Actions';
 import { Splash } from 'components/Splash/Splash';
 import { Players } from 'components/Players/Players';
 import { Menu } from 'components/Menu/Menu';
+import { Guess } from 'components/Guess/Guess';
 import { Debug } from 'components/Debug/Debug';
+import { Subject } from 'components/Subject/Subject';
+import { Reveal } from 'components/Reveal/Reveal';
 
 import ThemeMusic from 'assets/sounds/theme.mp3';
 
@@ -26,9 +29,6 @@ export class Game extends Component<Props, State> {
   declare context: React.ContextType<typeof SessionContext>;
 
   private music = new Audio(ThemeMusic);
-  private socket: Socket | undefined;
-  private sentCount = 0;
-  private inThrottle = false;
 
   constructor(props: Props) {
     super(props);
@@ -52,12 +52,10 @@ export class Game extends Component<Props, State> {
   }
 
   playAudio = () => {
-    this.music.play();
+    if (!Util.isMobile()) this.music.play();
   };
 
   componentDidUpdate() {
-    const client = this.context.clients.get(this.context.clientId);
-    if (client) this.update(client);
     storeSession(this.context);
   }
 
@@ -78,40 +76,17 @@ export class Game extends Component<Props, State> {
   };
 
   onSession = ({ code, client }: SessionClient) => {
-    this.socket = new Socket(this.context.dispatch);
-    this.socket.open('/socket', client.id);
-    this.context.dispatch({ type: 'session', payload: { session: { code }, client } });
+    this.context.dispatch({ type: 'RECEIVE_SESSION', payload: { session: { code }, client } });
   };
 
   onStart = () => {
-    this.socket?.send('start', {});
+    this.context.dispatch({ type: 'START' });
   };
 
   onQuit = () => {
-    this.socket?.send('end', {});
-    this.context.dispatch({ type: 'reset' });
+    this.context.dispatch({ type: 'END' });
+    this.context.dispatch({ type: 'RESET' });
   };
-
-  private update(client: Client) {
-    const sendPoints = () => {
-      let points = client.itterations[this.context.currentRound - 1];
-      if (!points) return;
-      const length = points.length;
-      points = points.slice(this.sentCount);
-      if (!points.length) return;
-      this.socket && this.socket.send('draw', { points });
-      this.sentCount = length;
-    };
-
-    if (this.context.stage === 'started' && !this.inThrottle) {
-      sendPoints();
-      this.inThrottle = true;
-      setTimeout(() => {
-        sendPoints();
-        this.inThrottle = false;
-      }, 50);
-    }
-  }
 
   private allowedStage(...stages: Stage[]) {
     return stages.includes(this.context.stage);
@@ -120,13 +95,16 @@ export class Game extends Component<Props, State> {
   public render() {
     return (
       <>
-        {this.allowedStage('started', 'guessing', 'ended') && <Canvas />}
+        {this.allowedStage('started', 'guessing') && <Canvas />}
         {this.allowedStage('none', 'lobby') && <Splash />}
         {this.allowedStage('lobby', 'started', 'guessing', 'ended') && <Players />}
-        {this.allowedStage('started', 'guessing') && <Actions />}
         {this.allowedStage('none', 'lobby') && (
           <Menu onConnect={this.onConnect} onStart={this.onStart} onQuit={this.onQuit} />
         )}
+        {this.allowedStage('started') && <Actions />}
+        {this.allowedStage('started') && <Subject />}
+        {this.allowedStage('guessing') && <Guess />}
+        {this.allowedStage('ended') && <Reveal />}
         {this.state.debug && <Debug />}
       </>
     );

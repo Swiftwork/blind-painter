@@ -1,0 +1,26 @@
+.reveal {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  & .title {
+    margin-top: 6rem;
+    font-size: 3em;
+    text-align: center;
+  }
+
+  & .answer {
+    font-size: 3em;
+    text-align: center;
+    color: #1d7cca;
+  }
+
+  & .canvas {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%);
+  }
+}

@@ -20,14 +20,18 @@ export class Players extends Component<Props> {
     return (
       <section className={`${s.players}`}>
         {painters.map(client =>
-          Players.Player(client, this.context.stage == 'lobby' || client.id === this.context.turnId),
+          Players.Player(
+            client,
+            this.context.stage == 'lobby' || client.id === this.context.turnId,
+            this.context.clientId === client.id,
+          ),
         )}
         {Players.Critics(critics)}
       </section>
     );
   }
 
-  static Player(client: Client, turn: boolean) {
+  static Player(client: Client, turn: boolean, you: boolean) {
     return (
       <figure key={client.id} className={`${s.player} ${!client.connected ? s.disconnected : ''}`} aria-current={turn}>
         {client.connected ? (
@@ -37,7 +41,7 @@ export class Players extends Component<Props> {
         )}
         <figcaption className={s.name}>
           <span className={s.turnHelper}>
-            Your turn:
+            {you ? 'Your' : `Player's`} turn:
             <br />
           </span>
           {client.name}

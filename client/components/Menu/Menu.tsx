@@ -158,7 +158,7 @@ export class Menu extends Component<Props, State> {
 
   public render() {
     return (
-      <form className={s.menu}>
+      <form className={s.menu} onSubmit={event => event.preventDefault()}>
         <h1 className={s.title}>Blind Painter</h1>
         {this.renderMenu()}
       </form>
