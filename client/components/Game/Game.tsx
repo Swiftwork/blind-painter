@@ -58,13 +58,22 @@ export class Game extends Component<Props, State> {
   componentDidUpdate() {
     const client = this.context.clients.get(this.context.clientId);
     if (client) this.update(client);
+    storeSession(this.context);
   }
 
   onConnect = (participate: boolean, name: string, code?: string) => {
     if (!code) {
-      Server.NewSession(name, participate).then(this.onSession);
+      Server.NewSession(name, participate)
+        .then(this.onSession)
+        .catch(error => {
+          alert(error);
+        });
     } else {
-      Server.JoinSession(code, name, participate).then(this.onSession);
+      Server.JoinSession(code, name, participate)
+        .then(this.onSession)
+        .catch(error => {
+          alert(error);
+        });
     }
   };
 
@@ -75,36 +84,50 @@ export class Game extends Component<Props, State> {
   };
 
   onStart = () => {
-    this.socket?.send('start', { code: this.context.code });
+    this.socket?.send('start', {});
+  };
+
+  onQuit = () => {
+    this.socket?.send('end', {});
+    this.context.dispatch({ type: 'reset' });
   };
 
   private update(client: Client) {
-    sessionStorage.setItem(
-      'session',
-      JSON.stringify(this.context, (key, value) => {
-        if (key == 'connected') return undefined;
-        if (key == 'status') return undefined;
-        if (key == 'clients') return Array.from(value.entries());
-        return value;
-      }),
-    );
+    const sendPoints = () => {
+      let points = client.itterations[this.context.currentRound - 1];
+      if (!points) return;
+      const length = points.length;
+      points = points.slice(this.sentCount);
+      if (!points.length) return;
+      this.socket && this.socket.send('draw', { points });
+      this.sentCount = length;
+    };
 
-    if (this.socket && this.context.status === 'started' && !this.inThrottle) {
-      this.socket.send('draw', { points: client.itterations[this.context.currentRound - 1] });
+    if (this.context.stage === 'started' && !this.inThrottle) {
+      sendPoints();
       this.inThrottle = true;
-      setTimeout(() => (this.inThrottle = false), 50);
+      setTimeout(() => {
+        sendPoints();
+        this.inThrottle = false;
+      }, 50);
     }
+  }
+
+  private allowedStage(...stages: Stage[]) {
+    return stages.includes(this.context.stage);
   }
 
   public render() {
     return (
       <>
-        <Canvas />
-        <Splash />
-        <Players />
-        <Actions />
-        <Menu onConnect={this.onConnect} onStart={this.onStart} />
-        <Debug />
+        {this.allowedStage('started', 'guessing', 'ended') && <Canvas />}
+        {this.allowedStage('none', 'lobby') && <Splash />}
+        {this.allowedStage('lobby', 'started', 'guessing', 'ended') && <Players />}
+        {this.allowedStage('started', 'guessing') && <Actions />}
+        {this.allowedStage('none', 'lobby') && (
+          <Menu onConnect={this.onConnect} onStart={this.onStart} onQuit={this.onQuit} />
+        )}
+        {this.state.debug && <Debug />}
       </>
     );
   }

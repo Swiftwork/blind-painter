@@ -10,7 +10,7 @@ const sessions = new Map();
 class Session {
   constructor(code) {
     this.code = code;
-    this.status = 'lobby';
+    this.stage = 'lobby';
     this.rounds = 2;
     this.currentRound = 0;
     this.elapsed = 0;
@@ -34,6 +34,7 @@ class Session {
       color: Util.intToRGB(Util.hashCode(id)),
       guess: undefined,
       participate,
+      connected: false,
       itterations: [],
     };
     if (!this.clients.size) this.hostId = id;
@@ -67,7 +68,7 @@ class Session {
   toJSON() {
     return {
       code: this.code,
-      status: this.status,
+      stage: this.stage,
       rounds: this.rounds,
       currentRound: this.currentRound,
       elapsed: this.elapsed,
@@ -94,28 +95,33 @@ function getSession(code, create = true) {
   return { code, session };
 }
 
+function errorMessage(res, code, reason) {
+  res.statusMessage = reason;
+  res.status(code).end();
+}
+
 endpoints.post('/', function(req, res) {
-  if (!req.body.name) return res.status(400).send(`You must supply a name in request body`);
+  if (!req.body.name) return errorMessage(res, 400, `You must supply a name in request body`);
   const { code, session } = getSession();
   const client = session.newClient(req.body.name, req.body.participate);
   res.send({ code, client });
 });
 
 endpoints.put('/:code', function(req, res) {
-  if (!req.body.name) return res.status(400).send(`You must supply a name in request body`);
+  if (!req.body.name) return errorMessage(res, 400, `You must supply a name in request body`);
   const { code, session } = getSession(req.params.code, false);
-  if (!session) return res.status(404).send(`Session ${code} does not exist`);
+  if (!session) return errorMessage(res, 404, `Session ${code} does not exist`);
   const client = session.newClient(req.body.name, req.body.participate);
   res.send({ code, client });
 });
 
 endpoints.delete('/:code/:client', function(req, res) {
   const { code, session } = getSession(req.params.code, false);
-  if (!session) return res.status(404).send(`Session ${code} does not exist`);
+  if (!session) return errorMessage(res, 404, `Session ${code} does not exist`);
   if (session.deleteClient(req.params.client)) {
     res.send(`Removed user ${req.params.client} from session ${code}`);
   } else {
-    res.status(404).send(`User ${req.params.client} does not exist`);
+    return errorMessage(res, 404, `User ${req.params.client} does not exist`);
   }
 });
 

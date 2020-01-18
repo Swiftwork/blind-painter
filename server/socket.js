@@ -17,6 +17,7 @@ class Socket extends EventEmitter {
       this.emit('session', { socketSession });
 
       connection.on('close', () => {
+        this.emit('disconnected', { socketSession });
         delete this.connections[socketSession];
       });
 

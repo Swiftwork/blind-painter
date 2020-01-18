@@ -10,6 +10,8 @@ import canvasTile from 'assets/canvas-small.jpg';
 interface Props {}
 
 interface State {
+  ratio: number;
+  scale: number;
   width: number;
   height: number;
 }
@@ -23,12 +25,16 @@ export class Canvas extends Component<Props, State> {
   private $canvas = createRef<HTMLCanvasElement>();
   private isDrawing = false;
 
+  private baseHeight = 740;
+
   constructor(props: Props) {
     super(props);
 
     this.state = {
-      width: 0,
-      height: 0,
+      ratio: 2,
+      scale: 1,
+      width: this.baseHeight / 2,
+      height: this.baseHeight,
     };
 
     // Load the image
@@ -58,10 +64,14 @@ export class Canvas extends Component<Props, State> {
   }
 
   private onResize = () => {
+    const desiredHeight = document.body.clientHeight;
+    const desiredWidth = desiredHeight / this.state.ratio;
+
     this.setState(
       {
-        width: document.body.clientWidth,
-        height: document.body.clientHeight,
+        width: desiredWidth,
+        height: desiredHeight,
+        scale: desiredHeight / this.baseHeight,
       },
       () => {
         this.draw();
@@ -73,7 +83,7 @@ export class Canvas extends Component<Props, State> {
     if (this.context.turnId !== this.context.clientId) return;
     event.preventDefault();
     this.isDrawing = true;
-    this.context.dispatch({ type: 'draw', payload: { points: Canvas.GetCoords(event) } });
+    this.context.dispatch({ type: 'draw', payload: { points: Canvas.GetCoords(event, this.state.scale) } });
     this.draw();
   };
 
@@ -81,7 +91,7 @@ export class Canvas extends Component<Props, State> {
     if (this.context.turnId !== this.context.clientId) return;
     event.preventDefault();
     if (this.isDrawing) {
-      this.context.dispatch({ type: 'draw', payload: { points: Canvas.GetCoords(event) } });
+      this.context.dispatch({ type: 'draw', payload: { points: Canvas.GetCoords(event, this.state.scale) } });
       this.draw();
     }
   };
@@ -115,20 +125,20 @@ export class Canvas extends Component<Props, State> {
     if (this.pattern) {
       this.ctx.fillStyle = this.pattern;
       this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+      this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
       this.ctx.fillStyle = '#000';
     } else {
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
-    this.ctx.shadowBlur = 1;
-    this.ctx.lineWidth = 8;
+    this.ctx.lineWidth = 6 * this.state.scale;
     this.ctx.lineJoin = this.ctx.lineCap = 'round';
 
-    this.ctx.globalCompositeOperation = 'overlay';
+    //this.ctx.globalCompositeOperation = 'overlay';
     for (const [_, client] of this.context.clients) {
       for (const itteration of client.itterations) {
         if (!itteration.length) continue;
-        this.drawLine(itteration, client.color);
+        this.drawLine(itteration.flat(), client.color);
       }
     }
     this.ctx.globalCompositeOperation = 'source-over';
@@ -143,33 +153,39 @@ export class Canvas extends Component<Props, State> {
     let p2 = points[1];
 
     this.ctx.beginPath();
-    this.ctx.moveTo(p1.x, p1.y);
+    this.ctx.moveTo(p1.x * this.state.scale, p1.y * this.state.scale);
 
     for (let i = 1, len = points.length; i < len; i++) {
       // we pick the point between pi+1 & pi+2 as the
       // end point and p1 as our control point
       const midPoint = Canvas.midPointBtw(p1, p2);
-      this.ctx.quadraticCurveTo(p1.x, p1.y, midPoint.x, midPoint.y);
+      this.ctx.quadraticCurveTo(
+        p1.x * this.state.scale,
+        p1.y * this.state.scale,
+        midPoint.x * this.state.scale,
+        midPoint.y * this.state.scale,
+      );
       p1 = points[i];
       p2 = points[i + 1];
     }
     // Draw last line as a straight line while
     // we wait for the next point to be able to calculate
     // the bezier control point
-    this.ctx.lineTo(p1.x, p1.y);
+    this.ctx.lineTo(p1.x * this.state.scale, p1.y * this.state.scale);
     this.ctx.stroke();
     this.ctx.strokeStyle = '#000';
   }
 
-  static GetCoords(event: RTouchEvent | RMouseEvent) {
+  static GetCoords(event: RTouchEvent | RMouseEvent, scale: number) {
+    const offset = event.currentTarget.getBoundingClientRect();
     let x = 0;
     let y = 0;
     if (Canvas.IsTouch(event)) {
-      x = event.touches[0].clientX;
-      y = event.touches[0].clientY;
+      x = (event.touches[0].clientX - offset.x) / scale;
+      y = (event.touches[0].clientY - offset.y) / scale;
     } else {
-      x = event.nativeEvent.clientX;
-      y = event.nativeEvent.clientY;
+      x = (event.nativeEvent.clientX - offset.x) / scale;
+      y = (event.nativeEvent.clientY - offset.y) / scale;
     }
     return { x, y };
   }

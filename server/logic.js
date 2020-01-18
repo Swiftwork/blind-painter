@@ -10,14 +10,15 @@ class Logic {
 
     /* EVENTS */
     socket.on('session', this.onSession);
+    socket.on('disconnected', this.onDisconnected);
     socket.on('settings', () => {});
     socket.on('start', this.onStart);
     socket.on('draw', this.onDraw);
     // "round" only broadcasted
     socket.on('turn', this.onTurn);
     socket.on('guess', () => {});
+    socket.on('end', () => {});
     // "reveal" only broadcasted
-    // "end" only broadcasted
   }
 
   getSessionClient(socketSession) {
@@ -34,6 +35,7 @@ class Logic {
     console.log('logic onSession', socketSession);
     const { session, client } = this.getSessionClient(socketSession);
     if (session && client) {
+      client.connected = true;
       this.socket.broadcastTo(session.getIds(), 'session', { session, client });
     } else {
       this.socket.getConnection(socketSession).close(404, 'Session does not exist');
@@ -44,7 +46,8 @@ class Logic {
     console.log('logic onDisconnected', socketSession);
     const { session, client } = this.getSessionClient(socketSession);
     if (session && client) {
-      this.socket.broadcastTo(session.getIds(), 'disconnected', { session, client });
+      client.connected = false;
+      this.socket.broadcastTo(session.getIds(), 'disconnected', { session, client }, [socketSession]);
     }
   };
 
@@ -58,26 +61,24 @@ class Logic {
     session.turnOrder = Util.shuffle(participantIds);
     session.blindId = Util.random(participantIds);
     session.subject = Util.random(movies);
-    session.status = 'started';
+    session.stage = 'started';
     this.socket.broadcastTo(ids, 'start', { subject: session.subject }, [session.blindId]);
     this.socket.broadcastTo(session.blindId, 'start', { subject: 'You are the blind painter' });
     this.advanceRound(session);
   };
 
   onDraw = ({ socketSession, points }) => {
-    console.log('logic onDraw', socketSession);
-
     const { session, client } = this.getSessionClient(socketSession);
     if (session && client && points && session.turnId === socketSession) {
       let itteration = client.itterations[session.currentRound - 1];
       if (!itteration) client.itterations.push((itteration = []));
 
-      if (Array.isArray(points)) itteration = [...itteration, ...points];
-      else itteration = [...itteration, points];
+      if (Array.isArray(points)) itteration.push([points]);
+      else itteration.push([points]);
+
+      console.log(itteration);
 
       client.itterations[session.currentRound - 1] = itteration;
-
-      console.log('logic onDraw', itteration);
 
       const ids = session.getIds();
       this.socket.broadcastTo(ids, 'draw', { clientId: socketSession, points }, [socketSession]);
@@ -128,7 +129,7 @@ class Logic {
   advanceGuess(session) {
     clearInterval(this.timers[session.code]);
     console.log('logic advanceGuess');
-    session.status = 'guessing';
+    session.stage = 'guessing';
     this.socket.broadcastTo(session.getIds(), 'guess');
 
     this.timers[session.code] = setInterval(() => {
@@ -138,10 +139,18 @@ class Logic {
     }, this.tick);
   }
 
+  onEnd = ({ socketSession }) => {
+    console.log('logic onEnd', socketSession);
+    const { session } = this.getSessionClient(socketSession);
+    if (session.hostId !== socketSession) return; // Only host can end the game
+
+    this.endGame();
+  };
+
   endGame(session) {
     clearInterval(this.timers[session.code]);
     console.log('logic endGame');
-    session.status = 'ended';
+    session.stage = 'ended';
     this.socket.broadcastTo(session.getIds(), 'end', { subject: session.subject, blindId: session.blindId });
 
     this.timers[session.code] = setInterval(() => {
