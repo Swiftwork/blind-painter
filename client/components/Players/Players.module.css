@@ -3,10 +3,93 @@
   display: flex;
   top: 0;
   left: 0;
+  padding: 1rem 1rem;
   width: 100%;
+  height: 5rem;
+  align-items: flex-end;
 
-  & .players {
-    flex: 0 1 20%;
+  @media (--b_sm) {
+    padding: 1rem 1rem;
+    height: 6rem;
+  }
+
+  & .player,
+  & .critics {
+    margin: 0 0.5rem;
+
+    & svg {
+      height: 100%;
+    }
+  }
+
+  & .player {
+    display: none;
+    opacity: 0.5;
+    transition: all 400ms;
+
+    &.disconnected {
+      & .icon {
+        fill: black !important;
+      }
+    }
+
+    & .icon {
+      display: inline-block;
+    }
+
+    & .name {
+      display: none;
+      margin-left: 1em;
+      font-size: 1.25em;
+
+      & .turnHelper {
+        color: rgba(0, 0, 0, 0.6);
+      }
+    }
+
+    &[aria-current='true'] {
+      display: flex;
+      opacity: 1;
+      height: 100%;
+
+      & .name {
+        display: block;
+      }
+    }
+
+    @media (--b_md) {
+      display: block;
+      height: 60%;
+      flex: 0 1 15%;
+      text-align: center;
+
+      &.disconnected {
+        height: 60%;
+        opacity: 0.5;
+
+        & .icon {
+          fill: black !important;
+        }
+      }
+
+      &[aria-current='true'] {
+        display: block;
+      }
+
+      & .name {
+        display: block;
+        margin-left: 0;
+
+        & .turnHelper {
+          display: none;
+        }
+      }
+    }
+  }
+
+  & .critics {
+    margin-left: auto;
+    height: 100%;
     text-align: center;
   }
 }

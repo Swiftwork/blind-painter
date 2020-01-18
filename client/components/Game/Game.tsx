@@ -13,27 +13,47 @@ import { Players } from 'components/Players/Players';
 import { Menu } from 'components/Menu/Menu';
 import { Debug } from 'components/Debug/Debug';
 
+import ThemeMusic from 'assets/sounds/theme.mp3';
+
 interface Props {}
 
-interface State {}
+interface State {
+  debug: boolean;
+}
 
 export class Game extends Component<Props, State> {
   static contextType = SessionContext;
   declare context: React.ContextType<typeof SessionContext>;
 
+  private music = new Audio(ThemeMusic);
   private socket: Socket | undefined;
-  inThrottle = false;
+  private sentCount = 0;
+  private inThrottle = false;
 
   constructor(props: Props) {
     super(props);
+    const urlParams = new URLSearchParams(window.location.search);
+
+    this.music.load();
+    this.music.volume = 0.5;
+    this.music.loop = true;
+
+    this.state = {
+      debug: urlParams.get('debug') == 'true',
+    };
   }
 
   componentDidMount() {
+    window.addEventListener('click', this.playAudio);
     if (this.context.code && this.context.clientId) {
       const client = this.context.clients.get(this.context.clientId);
       if (client) this.onSession({ code: this.context.code, client });
     }
   }
+
+  playAudio = () => {
+    this.music.play();
+  };
 
   componentDidUpdate() {
     const client = this.context.clients.get(this.context.clientId);

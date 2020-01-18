@@ -1,0 +1,14 @@
+.canvas {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.7);
+  box-sizing: border-box;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  @media (--b_md) {
+    outline: 8px double rgba(0, 0, 0, 0.3);
+    top: 10rem;
+    transform: translateX(-50%);
+  }
+}

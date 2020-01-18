@@ -75,10 +75,16 @@ module.exports = (_, argv) => ({
       },
       {
         test: /\.svg$/,
+        exclude: /\.full\.svg$/,
         use: ['@svgr/webpack', 'svgo-loader'],
       },
       {
-        test: /\.(jpe?g)$/,
+        test: /\.svg$/,
+        include: /\.full\.svg$/,
+        use: ['file-loader', 'svgo-loader'],
+      },
+      {
+        test: /\.(jpe?g|mp3)$/,
         loader: 'file-loader',
       },
     ],

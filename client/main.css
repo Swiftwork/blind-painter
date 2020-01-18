@@ -1,7 +1,15 @@
 html,
-body {
+body,
+main {
   height: 100%;
   overflow: hidden;
+}
+
+html {
+  background: #faeee6 url('assets/background.full.svg') center / 16rem repeat;
+}
+
+body {
   font-family: 'Permanent Marker', cursive;
 }
 

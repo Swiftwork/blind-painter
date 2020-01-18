@@ -3,6 +3,8 @@ import React, { Component, createRef, MouseEvent as RMouseEvent, TouchEvent as R
 import { Point } from 'context/interfaces';
 import { SessionContext } from 'context/store';
 
+import s from './Canvas.module.css';
+
 import canvasTile from 'assets/canvas-small.jpg';
 
 interface Props {}
@@ -92,6 +94,7 @@ export class Canvas extends Component<Props, State> {
   render() {
     return (
       <canvas
+        className={s.canvas}
         ref={this.$canvas}
         id="canvas"
         width={this.state.width}
