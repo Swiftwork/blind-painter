@@ -33,7 +33,7 @@ export interface Client {
   name: string;
   color: string;
   connected: boolean;
-  participate: boolean;
+  participant: boolean;
   itterations: Point[][][];
 }
 

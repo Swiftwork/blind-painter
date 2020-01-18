@@ -25,7 +25,7 @@ class Session {
     this.clients = new Map();
   }
 
-  newClient(name, participate = true) {
+  newClient(name, participant = true) {
     let id = hashids.encode((Date.now() + 1) % (1000 * 60 * 60));
     id = `${this.code}-${id}`;
     const client = {
@@ -33,7 +33,7 @@ class Session {
       name,
       color: Util.intToRGB(Util.hashCode(id)),
       guess: undefined,
-      participate,
+      participant,
       connected: false,
       itterations: [],
     };
@@ -56,7 +56,7 @@ class Session {
    */
   getIds(participant) {
     return Array.from(this.clients, ([_, client]) => {
-      if (typeof participant === 'boolean' && participant === client.participate) {
+      if (typeof participant === 'boolean' && participant === client.participant) {
         return client.id;
       } else if (typeof participant === 'undefined') {
         return client.id;
@@ -117,7 +117,7 @@ function errorMessage(res, code, reason) {
 endpoints.post('/', function(req, res) {
   if (!req.body.name) return errorMessage(res, 400, `You must supply a name in request body`);
   const { code, session } = getSession();
-  const client = session.newClient(req.body.name, req.body.participate);
+  const client = session.newClient(req.body.name, req.body.participant);
   res.send({ code, client });
 });
 
@@ -126,7 +126,7 @@ endpoints.put('/:code', function(req, res) {
   const { code, session } = getSession(req.params.code, false);
   if (!session) return errorMessage(res, 404, `Session ${code} does not exist`);
   if (session.stage !== 'lobby') return errorMessage(res, 404, `Session ${code} has already started`);
-  const client = session.newClient(req.body.name, req.body.participate);
+  const client = session.newClient(req.body.name, req.body.participant);
   res.send({ code, client });
 });
 

@@ -22,7 +22,6 @@ export class Subject extends Component<Props, State> {
   }
 
   componentDidMount() {
-    console.log('mounted');
     setTimeout(() => {
       this.setState({ shown: false });
     }, 1000 * 14);

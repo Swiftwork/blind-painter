@@ -59,15 +59,15 @@ export class Game extends Component<Props, State> {
     storeSession(this.context);
   }
 
-  onConnect = (participate: boolean, name: string, code?: string) => {
+  onConnect = (participant: boolean, name: string, code?: string) => {
     if (!code) {
-      Server.NewSession(name, participate)
+      Server.NewSession(name, participant)
         .then(this.onSession)
         .catch(error => {
           alert(error);
         });
     } else {
-      Server.JoinSession(code, name, participate)
+      Server.JoinSession(code, name, participant)
         .then(this.onSession)
         .catch(error => {
           alert(error);

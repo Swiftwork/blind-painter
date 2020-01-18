@@ -6,7 +6,7 @@ import { SessionContext } from 'context/store';
 import s from './Menu.module.css';
 
 interface Props {
-  onConnect(participate: boolean, name: string, code?: string): void;
+  onConnect(participant: boolean, name: string, code?: string): void;
   onStart(): void;
   onQuit(): void;
 }

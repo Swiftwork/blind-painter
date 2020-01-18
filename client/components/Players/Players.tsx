@@ -16,7 +16,7 @@ export class Players extends Component<Props> {
   declare context: React.ContextType<typeof SessionContext>;
 
   render() {
-    const [painters, critics] = Util.partition(Array.from(this.context.clients.values()), client => client.participate);
+    const [painters, critics] = Util.partition(Array.from(this.context.clients.values()), client => client.participant);
     return (
       <section className={`${s.players}`}>
         {painters.map(client =>

@@ -6,7 +6,7 @@ export interface SessionClient {
 }
 
 export class Server {
-  static NewSession(name: string, participate: boolean): Promise<SessionClient> {
+  static NewSession(name: string, participant: boolean): Promise<SessionClient> {
     return fetch(`/sessions`, {
       method: 'POST',
       headers: {
@@ -14,7 +14,7 @@ export class Server {
       },
       body: JSON.stringify({
         name,
-        participate,
+        participant,
       }),
     })
       .then(res => {
@@ -24,7 +24,7 @@ export class Server {
       .then(res => res.json());
   }
 
-  static JoinSession(code: string, name: string, participate: boolean): Promise<SessionClient> {
+  static JoinSession(code: string, name: string, participant: boolean): Promise<SessionClient> {
     return fetch(`/sessions/${code}`, {
       method: 'PUT',
       headers: {
@@ -32,7 +32,7 @@ export class Server {
       },
       body: JSON.stringify({
         name,
-        participate,
+        participant,
       }),
     })
       .then(res => {
