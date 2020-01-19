@@ -4,6 +4,8 @@ import { SessionContext } from 'context/store';
 
 import s from './Timer.module.css';
 
+import Beep from 'assets/sounds/beep.mp3';
+
 interface Props {}
 
 interface State {
@@ -17,8 +19,12 @@ export class Timer extends Component<Props, State> {
   private timer: number | undefined;
   private turnId: string | undefined;
 
+  private beep = new Audio(Beep);
+
   constructor(props: Props) {
     super(props);
+
+    this.beep.load();
 
     this.state = {
       remaining: Infinity,
@@ -36,6 +42,12 @@ export class Timer extends Component<Props, State> {
     window.clearInterval(this.timer);
   }
 
+  playBeep = () => {
+    this.beep.pause();
+    this.beep.currentTime = 0;
+    if (this.context.hostId == this.context.clientId) this.beep.play();
+  };
+
   newTurn() {
     this.setState({
       remaining: Math.round((this.context.turnDuration - this.context.turnElapsed) / 1000),
@@ -43,8 +55,10 @@ export class Timer extends Component<Props, State> {
 
     window.clearInterval(this.timer);
     this.timer = window.setInterval(() => {
+      const remaining = Math.max(0, this.state.remaining - 1);
+      if (remaining <= 10) this.playBeep();
       this.setState({
-        remaining: Math.max(0, this.state.remaining - 1),
+        remaining,
       });
     }, 1000);
   }

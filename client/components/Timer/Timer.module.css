@@ -18,16 +18,22 @@
   }
 
   @media (--b_sm) {
-    font-size: 4rem;
+    font-size: 3rem;
 
     &.emphasis {
-      font-size: 7em;
+      font-size: 6em;
     }
   }
 
   @media (--b_lg) {
+    font-size: 4rem;
+
     &.guessing {
       bottom: 1rem;
+    }
+
+    &.emphasis {
+      font-size: 7em;
     }
   }
 }
