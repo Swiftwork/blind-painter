@@ -15,6 +15,7 @@ import { Guess } from 'components/Guess/Guess';
 import { Debug } from 'components/Debug/Debug';
 import { Subject } from 'components/Subject/Subject';
 import { Reveal } from 'components/Reveal/Reveal';
+import { Timer } from 'components/Timer/Timer';
 
 import ThemeMusic from 'assets/sounds/theme.mp3';
 
@@ -44,18 +45,22 @@ export class Game extends Component<Props, State> {
   }
 
   componentDidMount() {
-    window.addEventListener('click', this.playAudio);
+    window.addEventListener('click', this.playTheme);
+
     if (this.context.code && this.context.clientId) {
       const client = this.context.clients.get(this.context.clientId);
       if (client) this.onSession({ code: this.context.code, client });
     }
   }
 
-  playAudio = () => {
-    if (!Util.isMobile()) this.music.play();
+  playTheme = () => {
+    if (this.context.hostId == this.context.clientId) this.music.play();
   };
 
   componentDidUpdate() {
+    if (this.context.stage === 'lobby' && this.context.hostId === this.context.clientId) this.playTheme();
+
+    // TODO: refactor
     storeSession(this.context);
   }
 
@@ -76,6 +81,7 @@ export class Game extends Component<Props, State> {
   };
 
   onSession = ({ code, client }: SessionClient) => {
+    this.playTheme();
     this.context.dispatch({ type: 'RECEIVE_SESSION', payload: { session: { code }, client } });
   };
 
@@ -102,6 +108,7 @@ export class Game extends Component<Props, State> {
           <Menu onConnect={this.onConnect} onStart={this.onStart} onQuit={this.onQuit} />
         )}
         {this.allowedStage('started') && <Actions />}
+        {this.allowedStage('started', 'guessing') && <Timer />}
         {this.allowedStage('started') && <Subject />}
         {this.allowedStage('guessing') && <Guess />}
         {this.allowedStage('ended') && <Reveal />}

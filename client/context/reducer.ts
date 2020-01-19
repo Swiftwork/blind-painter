@@ -88,7 +88,7 @@ export function reducer(state: Session, action: SessionAction): Session {
     }
 
     case 'RECEIVE_GUESS': {
-      return { ...state, stage: 'guessing' };
+      return { ...state, stage: 'guessing', turnId: undefined };
     }
 
     case 'RECEIVE_END': {

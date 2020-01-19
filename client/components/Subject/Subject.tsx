@@ -17,14 +17,19 @@ export class Subject extends Component<Props, State> {
     super(props);
 
     this.state = {
-      shown: true,
+      shown: false,
     };
   }
 
   componentDidMount() {
-    setTimeout(() => {
+    if (this.context.currentRound == 0) {
+      this.setState({ shown: true });
+      setTimeout(() => {
+        this.setState({ shown: false });
+      }, 1000 * 14);
+    } else {
       this.setState({ shown: false });
-    }, 1000 * 14);
+    }
   }
 
   public render() {

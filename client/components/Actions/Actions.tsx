@@ -27,7 +27,7 @@ export function Actions() {
   };
 
   return (
-    <menu className={s.actions}>
+    <menu className={s.actions} aria-hidden={turnId !== clientId}>
       <ClearIcon className={s.icon} onClick={onClear} />
       <UndoIcon className={s.icon} onClick={onUndo} />
       <DoneIcon className={s.icon} onClick={onSubmit} />

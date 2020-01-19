@@ -9,6 +9,10 @@ export class Util {
     return weightedMap;
   }
 
+  static random(array: any[]) {
+    return array[Math.floor(Math.random() * array.length)];
+  }
+
   static partition<T>(array: T[], filter: (item: T) => boolean) {
     return array.reduce(
       ([pass, fail], elem) => {

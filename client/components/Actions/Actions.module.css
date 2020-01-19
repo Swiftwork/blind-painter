@@ -2,6 +2,14 @@
   position: absolute;
   bottom: 0;
   right: 0;
+  margin: 0.5rem 0;
+  padding: 0;
+  transition: all 200ms;
+
+  &[aria-hidden='true'] {
+    opacity: 0;
+    pointer-events: 0;
+  }
 
   & .icon {
     display: block;
@@ -10,8 +18,8 @@
     height: 2.5rem;
 
     @media (--b_sm) {
-      width: 3rem;
-      height: 3rem;
+      width: 4rem;
+      height: 4rem;
     }
   }
 }

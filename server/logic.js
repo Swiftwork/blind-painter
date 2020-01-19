@@ -186,6 +186,7 @@ class Logic {
     console.log('logic onGuess', socketSession);
     const { session, client } = this.getSessionClient(socketSession);
     if (session.stage == 'guessing') client.guess = guess;
+    if (Array.from(session.clients.values()).every(client => !!client.guess)) this.endGame(session);
   };
 
   endGame(session) {

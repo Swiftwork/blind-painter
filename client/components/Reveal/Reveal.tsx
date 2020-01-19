@@ -3,6 +3,10 @@ import Wordcloud, { ListEntry } from 'wordcloud';
 
 import s from './Reveal.module.css';
 
+import TadaA from 'assets/sounds/tada-fanfare-a.mp3';
+import TadaF from 'assets/sounds/tada-fanfare-f.mp3';
+import TadaG from 'assets/sounds/tada-fanfare-g.mp3';
+
 import { Util } from 'api/util.ts';
 import { SessionContext } from 'context/store';
 
@@ -23,11 +27,18 @@ export class Reveal extends Component<Props, State> {
 
   private order: Stage[] = ['suspect', 'blind', 'guess', 'subject', 'ended'];
   private index = 0;
+  private timer: number | undefined;
+
+  private revealSounds = [new Audio(TadaA), new Audio(TadaF), new Audio(TadaG)];
 
   private $canvas = createRef<HTMLCanvasElement>();
 
   constructor(props: Props) {
     super(props);
+
+    this.revealSounds.forEach(sound => {
+      sound.load();
+    });
 
     this.state = {
       stage: 'suspect',
@@ -45,7 +56,13 @@ export class Reveal extends Component<Props, State> {
     }
   }
 
+  componentWillUnmount() {
+    window.clearTimeout(this.timer);
+  }
+
   private reveal() {
+    if (this.context.hostId == this.context.clientId) Util.random(this.revealSounds).play();
+
     this.setState(
       {
         stage: this.order[this.index],
@@ -54,8 +71,11 @@ export class Reveal extends Component<Props, State> {
         this.renderWordcloud();
       },
     );
+
     if (this.state.stage === 'ended') return;
-    setTimeout(() => {
+
+    window.clearTimeout(this.timer);
+    this.timer = window.setTimeout(() => {
       this.index++;
       this.reveal();
     }, Math.min(1000 * 15, this.context.turnDuration / 5));
