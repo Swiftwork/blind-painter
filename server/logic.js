@@ -1,5 +1,7 @@
 const { Util } = require('./util');
+
 const movies = require('./words/movies.json');
+const animals = require('./words/animals.json');
 
 class Logic {
   constructor(sessions, socket) {
@@ -67,7 +69,7 @@ class Logic {
     const criticIds = session.getIds(false);
     session.turnOrder = Util.shuffle(participantIds);
     session.blindId = Util.random(participantIds);
-    session.subject = Util.random(movies);
+    session.subject = Util.random(animals);
     session.stage = 'started';
     this.socket.broadcastTo(participantIds, 'START', { subject: session.subject, blind: false }, [session.blindId]);
     this.socket.broadcastTo(session.blindId, 'START', { subject: 'You are the blind painter', blind: true });
