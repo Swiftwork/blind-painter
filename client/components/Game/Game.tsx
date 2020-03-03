@@ -94,8 +94,8 @@ export class Game extends Component<Props, State> {
     this.context.dispatch({ type: 'RESET' });
   };
 
-  private allowedStage(...stages: Stage[]) {
-    return stages.includes(this.context.stage);
+  private allowedStage(...stages: (Stage | 'all')[]) {
+    return stages.includes('all') || stages.includes(this.context.stage);
   }
 
   public render() {
