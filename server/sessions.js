@@ -68,9 +68,10 @@ class Session {
   getGuesses() {
     const suspects = [];
     const guesses = [];
+    const resolveName = id => this.clients.get(id).name;
     this.clients.forEach(client => {
       if (!client.guess) return;
-      if (client.participant && client.id !== this.blindId) return suspects.push(client.guess);
+      if (client.participant && client.id !== this.blindId) return suspects.push(resolveName(client.guess));
       guesses.push(client.guess);
     });
     return { suspects, guesses };
