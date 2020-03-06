@@ -5,6 +5,24 @@ export interface SessionClient {
   client: Client;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+}
+
+export function isCategory(category: any): category is Category {
+  return 'id' in category;
+}
+
+export interface Group {
+  name: string;
+  categories: (Category | Group)[];
+}
+
+export function isGroup(group: any): group is Group {
+  return 'categories' in group;
+}
+
 export class Server {
   static NewSession(name: string, participant: boolean): Promise<SessionClient> {
     return fetch(`/sessions`, {
@@ -35,6 +53,15 @@ export class Server {
         participant,
       }),
     })
+      .then(res => {
+        if (!res.ok) throw new Error(res.statusText);
+        return res;
+      })
+      .then(res => res.json());
+  }
+
+  static GetCategories(): Promise<(Category | Group)[]> {
+    return fetch(`/words/`, {})
       .then(res => {
         if (!res.ok) throw new Error(res.statusText);
         return res;

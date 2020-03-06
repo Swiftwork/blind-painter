@@ -4,10 +4,11 @@ import QRCode from 'qrcode';
 import { SessionContext } from 'context/store';
 
 import s from './Menu.module.css';
+import { Server, Category, Group, isCategory, isGroup } from 'api/server';
 
 interface Props {
   onConnect(participant: boolean, name: string, code?: string): void;
-  onStart(): void;
+  onStart(categoryId: string): void;
   onQuit(): void;
 }
 
@@ -16,6 +17,7 @@ interface State {
   host: boolean;
   name: string;
   code: string;
+  categoryId: string;
 }
 
 export class Menu extends Component<Props, State> {
@@ -24,6 +26,8 @@ export class Menu extends Component<Props, State> {
 
   private qrCanvas = React.createRef<HTMLCanvasElement>();
   private qrRendered = '';
+
+  private categories: (Category | Group)[] = [];
 
   constructor(props: Props) {
     super(props);
@@ -35,18 +39,21 @@ export class Menu extends Component<Props, State> {
       host: false,
       name: '',
       code,
+      categoryId: '',
     };
   }
 
   componentDidMount() {
     const client = this.context.clients.get(this.context.clientId);
-    if (client)
+    if (client) {
       this.setState({
         stage: 'name',
         host: this.context.clientId == this.context.hostId,
         name: client.name,
         code: this.context.code,
       });
+    }
+    Server.GetCategories().then(categories => (this.categories = categories));
   }
 
   componentDidUpdate() {
@@ -132,7 +139,22 @@ export class Menu extends Component<Props, State> {
           <h2 className={s.code}>
             Code: <em>{this.context.code}</em>
           </h2>
-          <button className={s.button} type="button" onClick={this.props.onStart}>
+          <select
+            className={`${s.input}`}
+            style={{ maxWidth: '16em' }}
+            value={this.state.categoryId}
+            onChange={event => this.setState({ categoryId: event.currentTarget.value })}>
+            <option value="" disabled hidden>
+              Choose a category
+            </option>
+            {Menu.option(this.categories)}
+          </select>
+          <div className={s.break} />
+          <button
+            className={s.button}
+            type="button"
+            disabled={!this.state.categoryId}
+            onClick={() => this.props.onStart(this.state.categoryId)}>
             Start the game
           </button>
           <button className={s.button} type="button" onClick={this.props.onQuit}>
@@ -163,5 +185,24 @@ export class Menu extends Component<Props, State> {
         {this.renderMenu()}
       </form>
     );
+  }
+
+  static option(categories: (Category | Group)[]) {
+    return categories.map(category => {
+      if (isGroup(category)) {
+        return (
+          <optgroup key={category.name} label={category.name}>
+            {Menu.option(category.categories)}
+          </optgroup>
+        );
+      }
+      if (isCategory(category)) {
+        return (
+          <option key={category.id} value={category.id}>
+            {category.name}
+          </option>
+        );
+      }
+    });
   }
 }

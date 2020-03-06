@@ -1,9 +1,7 @@
 const express = require('express');
-const Hashids = require('hashids/cjs');
 const { Util } = require('./util');
 
-const endpoints = express.Router();
-const hashids = new Hashids('', 5, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
+const sessionEndpoints = express.Router();
 
 const sessions = new Map();
 
@@ -26,7 +24,7 @@ class Session {
   }
 
   newClient(name, participant = true) {
-    let id = hashids.encode((Date.now() + 1) % (1000 * 60 * 60));
+    let id = Util.encode((Date.now() + 1) % (1000 * 60 * 60));
     id = `${this.code}-${id}`;
     const client = {
       id,
@@ -104,7 +102,7 @@ function getSession(code, create = true) {
   if (typeof code === 'string') {
     session = sessions.get(code);
   } else if (create) {
-    code = hashids.encode(Date.now() % (1000 * 60 * 60));
+    code = Util.encode(Date.now() % (1000 * 60 * 60));
     sessions.set(code, (session = new Session(code)));
   }
   return { code, session };
@@ -115,14 +113,14 @@ function errorMessage(res, code, reason) {
   res.status(code).end();
 }
 
-endpoints.post('/', function(req, res) {
+sessionEndpoints.post('/', (req, res) => {
   if (!req.body.name) return errorMessage(res, 400, `You must supply a name in request body`);
   const { code, session } = getSession();
   const client = session.newClient(req.body.name, req.body.participant);
   res.send({ code, client });
 });
 
-endpoints.put('/:code', function(req, res) {
+sessionEndpoints.put('/:code', (req, res) => {
   if (!req.body.name) return errorMessage(res, 400, `You must supply a name in request body`);
   const { code, session } = getSession(req.params.code, false);
   if (!session) return errorMessage(res, 404, `Session ${code} does not exist`);
@@ -131,7 +129,7 @@ endpoints.put('/:code', function(req, res) {
   res.send({ code, client });
 });
 
-endpoints.delete('/:code/:client', function(req, res) {
+sessionEndpoints.delete('/:code/:client', (req, res) => {
   const { code, session } = getSession(req.params.code, false);
   if (!session) return errorMessage(res, 404, `Session ${code} does not exist`);
   if (session.deleteClient(req.params.client)) {
@@ -143,5 +141,5 @@ endpoints.delete('/:code/:client', function(req, res) {
 
 module.exports = {
   sessions,
-  endpoints,
+  sessionEndpoints,
 };
