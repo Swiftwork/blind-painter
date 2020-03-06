@@ -1,18 +1,17 @@
 import { defaultSession } from './store';
 import { Session, SessionAction } from './interfaces';
-import { type } from 'os';
 
 export function reducer(state: Session, action: SessionAction): Session {
-  const getItteration = (id: string | undefined, session: Session) => {
+  const getIteration = (id: string | undefined, session: Session) => {
     if (!id) id = state.clientId;
     if (!id) return;
 
     const client = session.clients.get(id);
     if (!client) return;
 
-    let itteration = client.itterations[session.currentRound - 1];
-    if (!itteration) client.itterations.push((itteration = []));
-    return itteration;
+    let iteration = client.iterations[session.currentRound - 1];
+    if (!iteration) client.iterations.push((iteration = []));
+    return iteration;
   };
 
   switch (action.type) {
@@ -52,21 +51,21 @@ export function reducer(state: Session, action: SessionAction): Session {
 
     case 'DRAW_START':
     case 'RECEIVE_DRAW_START': {
-      const itteration = getItteration(action.payload.clientId, state);
-      if (!itteration) return state;
+      const iteration = getIteration(action.payload.clientId, state);
+      if (!iteration) return state;
 
       // Create a new segment
-      if (Array.isArray(action.payload.points)) itteration.push(action.payload.points);
-      else itteration.push([action.payload.points]);
+      if (Array.isArray(action.payload.points)) iteration.push(action.payload.points);
+      else iteration.push([action.payload.points]);
 
       return { ...state };
     }
 
     case 'DRAW':
     case 'RECEIVE_DRAW': {
-      const itteration = getItteration(action.payload.clientId, state);
-      if (!itteration) return state;
-      const segment = itteration[itteration.length - 1];
+      const iteration = getIteration(action.payload.clientId, state);
+      if (!iteration) return state;
+      const segment = iteration[iteration.length - 1];
 
       // Append to last segment
       if (Array.isArray(action.payload.points)) segment.push(...action.payload.points);
@@ -77,12 +76,12 @@ export function reducer(state: Session, action: SessionAction): Session {
 
     case 'UNDO':
     case 'RECEIVE_UNDO': {
-      const itteration = getItteration(action.payload.clientId, state);
-      if (!itteration) return state;
+      const iteration = getIteration(action.payload.clientId, state);
+      if (!iteration) return state;
 
       // Remove count segments
       const count = action.payload.count || Infinity;
-      itteration.splice(-1 * count, count);
+      iteration.splice(-1 * count, count);
 
       return { ...state };
     }

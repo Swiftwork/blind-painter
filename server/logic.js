@@ -81,12 +81,12 @@ class Logic {
     const { session, client } = this.getSessionClient(socketSession);
     if (!session || !client || session.turnId !== socketSession) return;
 
-    let itteration = client.itterations[session.currentRound - 1];
-    if (!itteration) client.itterations.push((itteration = []));
+    let iteration = client.iterations[session.currentRound - 1];
+    if (!iteration) client.iterations.push((iteration = []));
 
     // Create a new segment
-    if (Array.isArray(points)) itteration.push(points);
-    else itteration.push([points]);
+    if (Array.isArray(points)) iteration.push(points);
+    else iteration.push([points]);
 
     const ids = session.getIds();
     this.socket.broadcastTo(ids, 'DRAW_START', { clientId: socketSession, points }, [socketSession]);
@@ -96,10 +96,10 @@ class Logic {
     const { session, client } = this.getSessionClient(socketSession);
     if (!session || !client || session.turnId !== socketSession) return;
 
-    const itteration = client.itterations[session.currentRound - 1];
-    if (!itteration) return;
+    const iteration = client.iterations[session.currentRound - 1];
+    if (!iteration) return;
 
-    const segment = itteration[itteration.length - 1];
+    const segment = iteration[iteration.length - 1];
     if (!segment) return;
 
     // Append to last segment
@@ -114,12 +114,12 @@ class Logic {
     const { session, client } = this.getSessionClient(socketSession);
     if (!session || !client || session.turnId !== socketSession) return;
 
-    const itteration = client.itterations[session.currentRound - 1];
-    if (!itteration) return;
+    const iteration = client.iterations[session.currentRound - 1];
+    if (!iteration) return;
 
     // Remove count segments
     count = count || Infinity;
-    itteration.splice(-1 * count, count);
+    iteration.splice(-1 * count, count);
 
     const ids = session.getIds();
     this.socket.broadcastTo(ids, 'UNDO', { clientId: socketSession, count }, [socketSession]);

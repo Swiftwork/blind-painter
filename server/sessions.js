@@ -33,7 +33,7 @@ class Session {
       guess: undefined,
       participant,
       connected: false,
-      itterations: [],
+      iterations: [],
     };
     if (!this.clients.size) this.hostId = id;
     this.clients.set(id, client);

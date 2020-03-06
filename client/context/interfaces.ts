@@ -34,7 +34,7 @@ export interface Client {
   color: string;
   connected: boolean;
   participant: boolean;
-  itterations: Point[][][];
+  iterations: Point[][][];
 }
 
 export type Stage = 'none' | 'lobby' | 'started' | 'guessing' | 'ended';
