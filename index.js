@@ -29,8 +29,11 @@ if (process.env.NODE_ENV === 'development') {
 // ENDPOINTS
 //------------------------------------------------------------------------------------
 
-const { sessions, endpoints } = require('./server/sessions');
-app.use('/sessions', endpoints);
+const { wordEndpoints } = require('./server/words');
+app.use('/words', wordEndpoints);
+
+const { sessions, sessionEndpoints } = require('./server/sessions');
+app.use('/sessions', sessionEndpoints);
 
 const { Socket } = require('./server/socket');
 const socket = new Socket(server);

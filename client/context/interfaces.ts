@@ -1,7 +1,7 @@
 export type SendAction =
   | { type: 'RESET' }
   | { type: 'SOCKET'; payload: { status: 'connected' | 'disconnected' } }
-  | { type: 'START' }
+  | { type: 'START'; payload: { categoryId: string } }
   | { type: 'TURN' }
   | { type: 'DRAW_START'; payload: { clientId?: string; points: Point | Point[] } }
   | { type: 'DRAW'; payload: { clientId?: string; points: Point | Point[] } }

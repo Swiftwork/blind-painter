@@ -1,7 +1,5 @@
 const { Util } = require('./util');
-
-const movies = require('./words/movies.json');
-const animals = require('./words/animals.json');
+const { words } = require('./words');
 
 class Logic {
   constructor(sessions, socket) {
@@ -60,7 +58,7 @@ class Logic {
     }
   };
 
-  onStart = ({ socketSession }) => {
+  onStart = async ({ socketSession, categoryId }) => {
     console.log('logic onStart', socketSession);
     const { session } = this.getSessionClient(socketSession);
     if (session.hostId !== socketSession) return; // Only host can start the game
@@ -69,7 +67,7 @@ class Logic {
     const criticIds = session.getIds(false);
     session.turnOrder = Util.shuffle(participantIds);
     session.blindId = Util.random(participantIds);
-    session.subject = Util.random(animals);
+    session.subject = await words.getWord(categoryId);
     session.stage = 'started';
     this.socket.broadcastTo(participantIds, 'START', { subject: session.subject, blind: false }, [session.blindId]);
     this.socket.broadcastTo(session.blindId, 'START', { subject: 'You are the blind painter', blind: true });

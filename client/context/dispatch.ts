@@ -22,7 +22,7 @@ export const attachSocketDispatch = (dispatch: Dispatch<SessionAction>) => (acti
     }
 
     case 'START': {
-      socket && socket.send(action.type);
+      socket && socket.send(action.type, action.payload);
       break;
     }
 

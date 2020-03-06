@@ -85,8 +85,8 @@ export class Game extends Component<Props, State> {
     this.context.dispatch({ type: 'RECEIVE_SESSION', payload: { session: { code }, client } });
   };
 
-  onStart = () => {
-    this.context.dispatch({ type: 'START' });
+  onStart = (categoryId: string) => {
+    this.context.dispatch({ type: 'START', payload: { categoryId } });
   };
 
   onQuit = () => {
