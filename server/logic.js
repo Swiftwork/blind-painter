@@ -69,9 +69,22 @@ class Logic {
     session.blindId = Util.random(participantIds);
     session.subject = await words.getWord(categoryId);
     session.stage = 'started';
-    this.socket.broadcastTo(participantIds, 'START', { subject: session.subject, blind: false }, [session.blindId]);
-    this.socket.broadcastTo(session.blindId, 'START', { subject: 'You are the blind painter', blind: true });
-    this.socket.broadcastTo(criticIds, 'START', { subject: 'You are a critic', blind: true });
+    this.socket.broadcastTo(
+      participantIds,
+      'START',
+      { subject: session.subject, turnOrder: session.turnOrder, blind: false },
+      [session.blindId],
+    );
+    this.socket.broadcastTo(session.blindId, 'START', {
+      subject: 'You are the blind painter',
+      turnOrder: session.turnOrder,
+      blind: true,
+    });
+    this.socket.broadcastTo(criticIds, 'START', {
+      subject: 'You are a critic',
+      turnOrder: session.turnOrder,
+      blind: true,
+    });
     setTimeout(() => {
       this.advanceRound(session);
     }, 1000 * 15);

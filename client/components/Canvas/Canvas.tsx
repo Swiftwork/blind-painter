@@ -137,7 +137,9 @@ export class Canvas extends Component<Props, State> {
     this.ctx.lineJoin = this.ctx.lineCap = 'round';
 
     for (let i = 0; i < this.context.currentRound; i++) {
-      for (const [_, client] of this.context.clients) {
+      for (const clientId of this.context.turnOrder) {
+        const client = this.context.clients.get(clientId);
+        if (!client) continue;
         const iteration = client.iterations[i];
         if (!iteration || !iteration.length) continue;
         this.drawLine(iteration.flat(), client.color);

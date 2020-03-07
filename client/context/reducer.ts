@@ -38,7 +38,13 @@ export function reducer(state: Session, action: SessionAction): Session {
     }
 
     case 'RECEIVE_START': {
-      return { ...state, stage: 'started', subject: action.payload.subject, blind: action.payload.blind };
+      return {
+        ...state,
+        stage: 'started',
+        subject: action.payload.subject,
+        turnOrder: action.payload.turnOrder,
+        blind: action.payload.blind,
+      };
     }
 
     case 'RECEIVE_ROUND': {

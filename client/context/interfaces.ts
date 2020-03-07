@@ -12,7 +12,7 @@ export type SendAction =
 export type ReceiveAction =
   | { type: 'RECEIVE_SESSION'; payload: { session: Partial<Session>; client: Partial<Client> } }
   | { type: 'RECEIVE_CONNECTION'; payload: { clientId: string; status: 'connected' | 'disconnected' } }
-  | { type: 'RECEIVE_START'; payload: { subject: string; blind: boolean } }
+  | { type: 'RECEIVE_START'; payload: { subject: string; turnOrder: string[]; blind: boolean } }
   | { type: 'RECEIVE_ROUND'; payload: { current: number } }
   | { type: 'RECEIVE_TURN'; payload: { clientId: string } }
   | { type: 'RECEIVE_DRAW_START'; payload: { clientId: string; points: Point | Point[] } }
@@ -49,6 +49,7 @@ export interface Session {
   elapsed: number;
   turnDuration: number;
   turnElapsed: number;
+  turnOrder: string[];
   turnId: string | undefined;
   hostId: string | undefined;
   blindId: string | undefined;

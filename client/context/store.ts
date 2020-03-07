@@ -11,6 +11,7 @@ export const defaultSession: Session = {
   elapsed: 0,
   turnDuration: 1000 * 60,
   turnElapsed: 0,
+  turnOrder: [],
   turnId: undefined,
   hostId: undefined,
   blindId: undefined,
