@@ -12,8 +12,8 @@ class Session {
     this.rounds = 2;
     this.currentRound = 0;
     this.elapsed = 0;
-    this.turnId = undefined;
     this.turnOrder = [];
+    this.turnId = undefined;
     this.currentTurn = 0;
     this.turnDuration = 1000 * 60;
     this.turnElapsed = 0;
@@ -33,7 +33,7 @@ class Session {
       guess: undefined,
       participant,
       connected: false,
-      itterations: [],
+      iterations: [],
     };
     if (!this.clients.size) this.hostId = id;
     this.clients.set(id, client);
@@ -82,6 +82,7 @@ class Session {
       rounds: this.rounds,
       currentRound: this.currentRound,
       elapsed: this.elapsed,
+      turnOrder: this.turnOrder,
       turnId: this.turnId,
       turnDuration: this.turnDuration,
       turnElapsed: this.turnElapsed,
