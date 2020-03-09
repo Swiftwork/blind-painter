@@ -115,6 +115,7 @@ function errorMessage(res, code, reason) {
 }
 
 sessionEndpoints.post('/', (req, res) => {
+  console.log(`Requesting a new session using name ${req.body.name} and participation ${req.body.participant}`);
   if (!req.body.name) return errorMessage(res, 400, `You must supply a name in request body`);
   const { code, session } = getSession();
   const client = session.newClient(req.body.name, req.body.participant);
@@ -122,6 +123,9 @@ sessionEndpoints.post('/', (req, res) => {
 });
 
 sessionEndpoints.put('/:code', (req, res) => {
+  console.log(
+    `Requesting to join session ${req.body.code} using name ${req.body.name} and participation ${req.body.participant}`,
+  );
   if (!req.body.name) return errorMessage(res, 400, `You must supply a name in request body`);
   const { code, session } = getSession(req.params.code, false);
   if (!session) return errorMessage(res, 404, `Session ${code} does not exist`);
@@ -133,6 +137,7 @@ sessionEndpoints.put('/:code', (req, res) => {
 });
 
 sessionEndpoints.delete('/:code/:client', (req, res) => {
+  console.log(`Requesting to remove user ${req.params.client} from session ${req.params.code}`);
   const { code, session } = getSession(req.params.code, false);
   if (!session) return errorMessage(res, 404, `Session ${code} does not exist`);
   if (session.deleteClient(req.params.client)) {
