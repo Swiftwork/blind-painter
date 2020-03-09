@@ -29,7 +29,7 @@ class Session {
     const client = {
       id,
       name,
-      color: Util.intToRGB(Util.hashCode(id)),
+      color: Util.getColor(this.clients.size),
       guess: undefined,
       participant,
       connected: false,
@@ -126,6 +126,8 @@ sessionEndpoints.put('/:code', (req, res) => {
   const { code, session } = getSession(req.params.code, false);
   if (!session) return errorMessage(res, 404, `Session ${code} does not exist`);
   if (session.stage !== 'lobby') return errorMessage(res, 404, `Session ${code} has already started`);
+  if (req.body.participant && session.getIds(true).length >= 10)
+    return errorMessage(res, 403, `Session ${code} already has the maximum of 10 participants`);
   const client = session.newClient(req.body.name, req.body.participant);
   res.send({ code, client });
 });
