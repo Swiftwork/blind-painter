@@ -5,8 +5,6 @@ import { SessionContext } from 'context/store';
 
 import s from './Canvas.module.css';
 
-//import canvasTile from 'assets/canvas-small.jpg';
-
 interface Props {}
 
 interface State {
@@ -24,6 +22,10 @@ export class Canvas extends Component<Props, State> {
   private pattern: CanvasPattern | null = null;
   private $canvas = createRef<HTMLCanvasElement>();
   private isDrawing = false;
+  private drawFrame = 0;
+  private drawTimestamp = 0;
+  private drawTime = 0;
+  private inputThrottle = false;
 
   private baseHeight = 740;
 
@@ -36,49 +38,31 @@ export class Canvas extends Component<Props, State> {
       width: this.baseHeight / 2,
       height: this.baseHeight,
     };
-
-    /*
-    // Load the image
-    const img = new Image();
-    img.src = canvasTile;
-    img.onload = () => {
-      if (!this.ctx) return;
-      this.pattern = this.ctx.createPattern(img, 'repeat');
-      this.draw();
-    };
-    */
   }
 
   componentDidMount() {
     if (this.$canvas.current) {
       this.ctx = this.$canvas.current.getContext('2d');
       window.addEventListener('resize', this.onResize);
+      this.drawFrame = window.requestAnimationFrame(this.draw);
       this.onResize();
     }
   }
 
   componentWillUnmount() {
     window.removeEventListener('resize', this.onResize);
-  }
-
-  componentDidUpdate() {
-    this.draw();
+    window.cancelAnimationFrame(this.drawFrame);
   }
 
   private onResize = () => {
     const desiredHeight = document.body.clientHeight;
     const desiredWidth = desiredHeight / this.state.ratio;
 
-    this.setState(
-      {
-        width: desiredWidth,
-        height: desiredHeight,
-        scale: desiredHeight / this.baseHeight,
-      },
-      () => {
-        this.draw();
-      },
-    );
+    this.setState({
+      width: desiredWidth,
+      height: desiredHeight,
+      scale: desiredHeight / this.baseHeight,
+    });
   };
 
   onTouchStart = (event: RTouchEvent | RMouseEvent) => {
@@ -86,15 +70,17 @@ export class Canvas extends Component<Props, State> {
     event.preventDefault();
     this.isDrawing = true;
     this.context.dispatch({ type: 'DRAW_START', payload: { points: Canvas.GetCoords(event, this.state.scale) } });
-    this.draw();
   };
 
   onTouchMove = (event: RTouchEvent | RMouseEvent) => {
     if (this.context.turnId !== this.context.clientId) return;
     event.preventDefault();
-    if (this.isDrawing) {
+    if (!this.inputThrottle && this.isDrawing) {
+      this.inputThrottle = true;
       this.context.dispatch({ type: 'DRAW', payload: { points: Canvas.GetCoords(event, this.state.scale) } });
-      this.draw();
+      setTimeout(() => {
+        this.inputThrottle = false;
+      }, this.drawTime / 2);
     }
   };
 
@@ -121,12 +107,17 @@ export class Canvas extends Component<Props, State> {
     );
   }
 
-  draw() {
+  draw = (timestamp: number) => {
     if (!this.ctx) return;
+
+    if (this.drawTimestamp) {
+      const delta = timestamp - this.drawTimestamp;
+      this.drawTime = this.drawTime * 0.9 + delta * (1.0 - 0.9);
+    }
+    this.drawTimestamp = timestamp;
 
     if (this.pattern) {
       this.ctx.fillStyle = this.pattern;
-      //this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
       this.ctx.fillStyle = '#000';
     } else {
@@ -145,7 +136,9 @@ export class Canvas extends Component<Props, State> {
         this.drawLine(iteration.flat(), client.color);
       }
     }
-  }
+
+    this.drawFrame = window.requestAnimationFrame(this.draw);
+  };
 
   drawLine(points: Point[], color: string) {
     if (!this.ctx) return;
