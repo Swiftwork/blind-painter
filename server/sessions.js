@@ -29,7 +29,7 @@ class Session {
     const client = {
       id,
       name,
-      color: Util.intToRGB(Util.hashCode(id)),
+      color: Util.getColor(this.clients.size),
       guess: undefined,
       participant,
       connected: false,

@@ -1,5 +1,18 @@
 const Hashids = require('hashids/cjs');
 const hashids = new Hashids('', 5, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
+const colors = [
+  '#91278e',
+  '#00aeef',
+  '#00a550',
+  '#ee1d24',
+  '#f8941d',
+  '#00a99d',
+  '#bf235e',
+  '#8cc63f',
+  '#4979bd',
+  '#c28a7b',
+  '#56787d',
+];
 
 class Util {
   static shuffle(array) {
@@ -30,17 +43,8 @@ class Util {
     return hashids.decodeHex(str);
   }
 
-  static hashCode(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return hash;
-  }
-
-  static intToRGB(i) {
-    const c = (i & 0x00ffffff).toString(16).toUpperCase();
-    return '#' + '00000'.substring(0, 6 - c.length) + c;
+  static getColor(i) {
+    return colors[i];
   }
 }
 
