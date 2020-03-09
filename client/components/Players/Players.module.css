@@ -66,15 +66,11 @@
 
       &.disconnected {
         height: 60%;
-        opacity: 0.5;
-
-        & .icon {
-          fill: black !important;
-        }
       }
 
       &[aria-current='true'] {
         display: block;
+        height: 100%;
       }
 
       & .name {
