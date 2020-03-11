@@ -39,6 +39,7 @@
     width: 100%;
     max-width: 8em;
     font-size: 1.5em;
+    text-transform: uppercase;
     letter-spacing: 4px;
     text-align: center;
     border: 2px solid;

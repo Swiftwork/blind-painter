@@ -4,7 +4,6 @@ import { SessionContext, storeSession } from 'context/store';
 import { Stage } from 'context/interfaces';
 
 import { Server, SessionClient } from 'api/server';
-import { Util } from 'api/util';
 
 import { Canvas } from 'components/Canvas/Canvas';
 import { Actions } from 'components/Actions/Actions';

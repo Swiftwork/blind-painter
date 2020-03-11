@@ -101,6 +101,7 @@ class Session {
 function getSession(code, create = true) {
   let session;
   if (typeof code === 'string') {
+    code = code.toUpperCase();
     session = sessions.get(code);
   } else if (create) {
     code = Util.encode(Date.now() % (1000 * 60 * 60));
