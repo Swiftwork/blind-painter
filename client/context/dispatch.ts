@@ -47,6 +47,11 @@ export const attachSocketDispatch = (dispatch: Dispatch<SessionAction>) => (acti
       break;
     }
 
+    case 'KICK': {
+      socket && socket.send(action.type, action.payload);
+      break;
+    }
+
     case 'UNDO': {
       socket && socket.send(action.type, action.payload);
       break;

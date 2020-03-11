@@ -80,6 +80,13 @@ export function reducer(state: Session, action: SessionAction): Session {
       return { ...state };
     }
 
+    case 'KICK':
+    case 'RECEIVE_KICK': {
+      const { clients } = state;
+      clients.delete(action.payload.clientId);
+      return { ...state, clients };
+    }
+
     case 'UNDO':
     case 'RECEIVE_UNDO': {
       const iteration = getIteration(action.payload.clientId, state);

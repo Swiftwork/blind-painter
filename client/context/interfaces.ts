@@ -5,6 +5,7 @@ export type SendAction =
   | { type: 'TURN' }
   | { type: 'DRAW_START'; payload: { clientId?: string; points: Point | Point[] } }
   | { type: 'DRAW'; payload: { clientId?: string; points: Point | Point[] } }
+  | { type: 'KICK'; payload: { clientId: string } }
   | { type: 'UNDO'; payload: { clientId?: string; count?: number } }
   | { type: 'GUESS'; payload: { guess: string } }
   | { type: 'END' };
@@ -17,6 +18,7 @@ export type ReceiveAction =
   | { type: 'RECEIVE_TURN'; payload: { clientId: string } }
   | { type: 'RECEIVE_DRAW_START'; payload: { clientId: string; points: Point | Point[] } }
   | { type: 'RECEIVE_DRAW'; payload: { clientId: string; points: Point | Point[] } }
+  | { type: 'RECEIVE_KICK'; payload: { clientId: string } }
   | { type: 'RECEIVE_UNDO'; payload: { clientId: string; count?: number } }
   | { type: 'RECEIVE_GUESS' }
   | { type: 'RECEIVE_END'; payload: { subject: string; blindId: string; suspects: string[]; guesses: string[] } };

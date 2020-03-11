@@ -15,6 +15,7 @@ class Logic {
     socket.on('START', this.onStart);
     socket.on('DRAW_START', this.onDrawStart);
     socket.on('DRAW', this.onDraw);
+    socket.on('KICK', this.onKick);
     socket.on('UNDO', this.onUndo);
     // "round" only broadcasted
     socket.on('TURN', this.onTurn);
@@ -121,6 +122,14 @@ class Logic {
 
     const ids = session.getIds();
     this.socket.broadcastTo(ids, 'DRAW', { clientId: socketSession, points }, [socketSession]);
+  };
+
+  onKick = ({ socketSession, clientId }) => {
+    const { session } = this.getSessionClient(socketSession);
+    if (session.hostId !== socketSession) return; // Only host can kick
+    session.deleteClient(clientId);
+    const ids = session.getIds();
+    this.socket.broadcastTo(ids, 'KICK', { clientId });
   };
 
   onUndo = ({ socketSession, count }) => {

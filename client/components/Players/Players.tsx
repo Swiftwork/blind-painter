@@ -6,6 +6,8 @@ import { Util } from 'api/util';
 import s from './Players.module.css';
 
 import PaletteIcon from 'assets/icons/palette.svg';
+import HostIcon from 'assets/icons/host.svg';
+import ClearIcon from 'assets/icons/clear.svg';
 import PaletteOfflineIcon from 'assets/icons/palette-offline.svg';
 import CriticIcon from 'assets/icons/critic.svg';
 
@@ -18,22 +20,45 @@ export class Players extends Component<Props> {
   render() {
     const [painters, critics] = Util.partition(Array.from(this.context.clients.values()), client => client.participant);
     return (
-      <section className={`${s.players}`}>
+      <section
+        className={`${s.players}`}
+        style={{
+          pointerEvents: this.context.stage !== 'lobby' ? 'none' : 'all',
+        }}>
         {painters.map(client =>
-          Players.Player(
+          this.renderPlayer(
             client,
-            this.context.stage == 'lobby' || client.id === this.context.turnId,
+            this.context.hostId === client.id,
+            this.context.stage === 'lobby' || client.id === this.context.turnId,
             this.context.clientId === client.id,
           ),
         )}
-        {Players.Critics(critics)}
+        {this.renderCritics(critics)}
       </section>
     );
   }
 
-  static Player(client: Client, turn: boolean, you: boolean) {
+  renderPlayer(client: Client, host: boolean, turn: boolean, you: boolean) {
     return (
       <figure key={client.id} className={`${s.player} ${!client.connected ? s.disconnected : ''}`} aria-current={turn}>
+        {this.context.stage === 'lobby' &&
+          (host ? (
+            <HostIcon className={s.helper} fill={client.color} />
+          ) : (
+            this.context.clientId === this.context.hostId && (
+              <ClearIcon
+                className={s.helper}
+                fill={client.color}
+                style={{
+                  cursor: 'pointer',
+                }}
+                onClick={() => {
+                  if (this.context.clientId === this.context.hostId)
+                    this.context.dispatch({ type: 'KICK', payload: { clientId: client.id } });
+                }}
+              />
+            )
+          ))}
         {client.connected ? (
           <PaletteIcon className={s.icon} fill={client.color} />
         ) : (
@@ -50,7 +75,7 @@ export class Players extends Component<Props> {
     );
   }
 
-  static Critics(clients: Client[]) {
+  renderCritics(clients: Client[]) {
     return (
       <figure className={s.critics}>
         <CriticIcon className={s.icon} />
