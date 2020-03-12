@@ -7,8 +7,10 @@
   "license": "GPL-3.0",
   "main": "server/index.js",
   "scripts": {
-    "prestart": "rimraf dist",
-    "start": "nodemon -w index.js -w server/ index.js",
+    "build": "next build",
+    "start": "next -p 3005",
+    "start:dist": "next start",
+    "debug": "npm --node-options=--inspect run start",
     "docker": "docker run -p 5200:5200 blind-painter:latest"
   },
   "dependencies": {
@@ -17,6 +19,7 @@
     "dotenv": "8.2.0",
     "express": "4.17.1",
     "hashids": "2.2.1",
+    "next": "^9.3.0",
     "qrcode": "^1.4.4",
     "react": "16.13.0",
     "react-dom": "16.13.0",

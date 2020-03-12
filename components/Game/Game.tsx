@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { SessionContext, storeSession } from 'context/store';
 import { Stage } from 'context/interfaces';
 
-import { Server, SessionClient } from 'api/server';
+import { Server, SessionClient } from 'client/server';
 
 import { Canvas } from 'components/Canvas/Canvas';
 import { Actions } from 'components/Actions/Actions';
@@ -28,23 +28,29 @@ export class Game extends Component<Props, State> {
   static contextType = SessionContext;
   declare context: React.ContextType<typeof SessionContext>;
 
-  private music = new Audio(ThemeMusic);
+  private music: HTMLAudioElement | undefined;
 
   constructor(props: Props) {
     super(props);
-    const urlParams = new URLSearchParams(window.location.search);
-
-    this.music.load();
-    this.music.volume = 0.5;
-    this.music.loop = true;
 
     this.state = {
-      debug: urlParams.get('debug') == 'true',
+      debug: false,
     };
   }
 
   componentDidMount() {
     window.addEventListener('click', this.playTheme);
+
+    this.music = new Audio(ThemeMusic);
+    this.music.load();
+    this.music.volume = 0.5;
+    this.music.loop = true;
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    this.setState({
+      debug: urlParams.get('debug') == 'true',
+    });
 
     if (this.context.code && this.context.clientId) {
       const client = this.context.clients.get(this.context.clientId);
@@ -53,7 +59,7 @@ export class Game extends Component<Props, State> {
   }
 
   playTheme = () => {
-    if (this.context.hostId == this.context.clientId) this.music.play();
+    if (this.context.hostId == this.context.clientId && this.music) this.music.play();
   };
 
   componentDidUpdate() {

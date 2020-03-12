@@ -1,5 +1,5 @@
 import sockjs, { Options, OpenEvent, MessageEvent, CloseEvent } from 'sockjs-client';
-import { SessionAction } from 'context/interfaces';
+import { SessionAction } from '../context/interfaces';
 
 export interface SocketEvent {
   type: string;

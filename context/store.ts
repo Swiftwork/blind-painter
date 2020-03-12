@@ -24,13 +24,16 @@ export const defaultSession: Session = {
 };
 
 export function fetchSession(): Partial<Session> {
-  return JSON.parse(sessionStorage.getItem('session') as string, (key, value) => {
-    if (key == 'clients') return new Map(value);
-    return value;
-  });
+  return typeof window !== 'undefined'
+    ? JSON.parse(sessionStorage.getItem('session') as string, (key, value) => {
+        if (key == 'clients') return new Map(value);
+        return value;
+      })
+    : {};
 }
 
 export function storeSession(session: Partial<Session>) {
+  if (typeof window === 'undefined') return;
   const cache = fetchSession();
   sessionStorage.setItem(
     'session',

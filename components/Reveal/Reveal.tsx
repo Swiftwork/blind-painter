@@ -1,5 +1,5 @@
 import React, { Component, createRef } from 'react';
-import Wordcloud, { ListEntry } from 'wordcloud';
+import { ListEntry } from 'wordcloud';
 
 import s from './Reveal.module.css';
 
@@ -7,7 +7,7 @@ import TadaA from 'assets/sounds/tada-fanfare-a.mp3';
 import TadaF from 'assets/sounds/tada-fanfare-f.mp3';
 import TadaG from 'assets/sounds/tada-fanfare-g.mp3';
 
-import { Util } from 'api/util.ts';
+import { Util } from 'client/util.ts';
 import { SessionContext } from 'context/store';
 
 type Stage = 'suspect' | 'blind' | 'guess' | 'subject' | 'ended';
@@ -96,12 +96,14 @@ export class Reveal extends Component<Props, State> {
     );
   };
 
-  private renderWordcloud() {
+  private async renderWordcloud() {
     if (!this.$canvas.current) return;
 
     const list = Array.from(
       Util.weightedMap(this.state.stage == 'suspect' ? this.context.suspects : this.context.guesses).entries(),
     );
+
+    const Wordcloud = (await import('wordcloud')).default;
 
     Wordcloud(this.$canvas.current, {
       list,

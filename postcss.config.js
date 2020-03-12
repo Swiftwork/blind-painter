@@ -1,4 +1,4 @@
-module.exports = ({ options }) => ({
+module.exports = {
   plugins: {
     'postcss-import': {},
     'postcss-preset-env': {
@@ -22,4 +22,4 @@ module.exports = ({ options }) => ({
       },
     },
   },
-});
+};

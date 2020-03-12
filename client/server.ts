@@ -1,4 +1,4 @@
-import { Client } from 'context/interfaces';
+import { Client } from '../context/interfaces';
 
 export interface SessionClient {
   code: string;
@@ -61,7 +61,7 @@ export class Server {
   }
 
   static GetCategories(): Promise<(Category | Group)[]> {
-    return fetch(`/words/`, {})
+    return fetch(`/api/words`, {})
       .then(res => {
         if (!res.ok) throw new Error(res.statusText);
         return res;

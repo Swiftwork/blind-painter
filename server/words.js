@@ -7,7 +7,7 @@ const wordEndpoints = express.Router();
 
 class Words {
   constructor() {
-    this.loadCategories(path.resolve('server', 'words')).then(categories => (this.categories = categories));
+    this.loadCategories(path.resolve('words')).then(categories => (this.categories = categories));
   }
 
   async loadCategories(dir) {
@@ -53,10 +53,4 @@ class Words {
   }
 }
 
-const words = new Words();
-
-wordEndpoints.get('/', async (req, res) => {
-  res.send(words.getCategories());
-});
-
-module.exports = { words, wordEndpoints };
+module.exports = { Words };

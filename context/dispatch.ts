@@ -1,4 +1,4 @@
-import { Socket } from 'api/socket';
+import { Socket } from 'client/socket';
 import { SessionAction, Point } from './interfaces';
 import { Dispatch } from 'react';
 

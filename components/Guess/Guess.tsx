@@ -1,7 +1,7 @@
 import React, { Component, FormEvent } from 'react';
 
 import { SessionContext } from 'context/store';
-import { Util } from 'api/util';
+import { Util } from 'client/util';
 
 import s from './Guess.module.css';
 

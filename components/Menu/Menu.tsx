@@ -4,7 +4,7 @@ import QRCode from 'qrcode';
 import { SessionContext } from 'context/store';
 
 import s from './Menu.module.css';
-import { Server, Category, Group, isCategory, isGroup } from 'api/server';
+import { Server, Category, Group, isCategory, isGroup } from 'client/server';
 
 interface Props {
   onConnect(participant: boolean, name: string, code?: string): void;
@@ -31,19 +31,25 @@ export class Menu extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props);
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code') || '';
 
     this.state = {
-      stage: code ? 'name' : 'code',
+      stage: 'code',
       host: false,
       name: '',
-      code,
+      code: '',
       categoryId: '',
     };
   }
 
   componentDidMount() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code') || '';
+
+    this.setState({
+      stage: code ? 'name' : 'code',
+      code,
+    });
+
     const client = this.context.clients.get(this.context.clientId);
     if (client) {
       this.setState({
@@ -53,7 +59,9 @@ export class Menu extends Component<Props, State> {
         code: this.context.code,
       });
     }
-    Server.GetCategories().then(categories => (this.categories = categories));
+    Server.GetCategories()
+      .then(categories => (this.categories = categories))
+      .catch(err => alert(err));
   }
 
   componentDidUpdate() {
