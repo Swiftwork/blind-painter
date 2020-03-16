@@ -6,7 +6,7 @@ main {
 }
 
 html {
-  background: #faeee6 url('/static/background.svg') center / 16rem repeat;
+  background: #faeee6 url('/background.svg') center / 16rem repeat;
 }
 
 body {

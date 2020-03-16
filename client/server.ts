@@ -1,31 +1,14 @@
-import { Client } from '../context/interfaces';
+import { Client } from 'context/interfaces';
+import { Category, Group } from 'shared/interfaces';
 
 export interface SessionClient {
   code: string;
   client: Client;
 }
 
-export interface Category {
-  id: string;
-  name: string;
-}
-
-export function isCategory(category: any): category is Category {
-  return 'id' in category;
-}
-
-export interface Group {
-  name: string;
-  categories: (Category | Group)[];
-}
-
-export function isGroup(group: any): group is Group {
-  return 'categories' in group;
-}
-
 export class Server {
   static NewSession(name: string, participant: boolean): Promise<SessionClient> {
-    return fetch(`/sessions`, {
+    return fetch(`/api/sessions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -43,7 +26,7 @@ export class Server {
   }
 
   static JoinSession(code: string, name: string, participant: boolean): Promise<SessionClient> {
-    return fetch(`/sessions/${code}`, {
+    return fetch(`/api/sessions/${code}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

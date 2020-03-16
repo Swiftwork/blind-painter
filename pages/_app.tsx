@@ -1,18 +1,16 @@
 import React from 'react';
-import App from 'next/app';
-import { SessionProvider } from '../context/provider';
+import { AppProps } from 'next/app';
 
-import '../styles/main.css';
+import { SessionProvider } from 'context/provider';
 
-class BlindApp extends App {
-  render() {
-    const { Component, pageProps } = this.props;
-    return (
-      <SessionProvider>
-        <Component {...pageProps} />
-      </SessionProvider>
-    );
-  }
+import 'styles/main.css';
+
+function BlindApp({ Component, pageProps }: AppProps) {
+  return (
+    <SessionProvider>
+      <Component {...pageProps} />
+    </SessionProvider>
+  );
 }
 
 export default BlindApp;

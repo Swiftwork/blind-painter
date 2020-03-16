@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import QRCode from 'qrcode';
 
+import { Server } from 'client/server';
 import { SessionContext } from 'context/store';
+import { Category, Group, isGroup, isCategory } from 'shared/interfaces';
 
 import s from './Menu.module.css';
-import { Server, Category, Group, isCategory, isGroup } from 'client/server';
 
 interface Props {
   onConnect(participant: boolean, name: string, code?: string): void;

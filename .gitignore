@@ -4,6 +4,7 @@
 node_modules
 resources
 .next
+dist
 
 # Logs
 *.log

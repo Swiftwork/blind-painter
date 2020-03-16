@@ -1,12 +1,17 @@
-const { Util } = require('./util');
-const { words } = require('./words');
+import { Util } from './util';
+import { words } from './words';
+import { Session } from './sessions';
+import { Server as SocketServer } from 'sockjs';
 
-class Logic {
-  constructor(sessions, socket) {
+export class Logic {
+  private sessions: Map<string, Session>;
+  private socket: SocketServer;
+  private timers = {};
+  private tick = 1000;
+
+  constructor(sessions: Map<string, Session>, socket: SocketServer) {
     this.sessions = sessions;
     this.socket = socket;
-    this.timers = {};
-    this.tick = 1000;
 
     /* EVENTS */
     socket.on('SESSION', this.onSession);
@@ -24,7 +29,7 @@ class Logic {
     // "reveal" only broadcasted
   }
 
-  getSessionClient(socketSession) {
+  getSessionClient(socketSession: string) {
     const [code] = socketSession.split('-');
     const session = this.sessions.get(code);
     if (session) {
@@ -243,7 +248,3 @@ class Logic {
     this.sessions.delete(session.code);
   }
 }
-
-module.exports = {
-  Logic,
-};

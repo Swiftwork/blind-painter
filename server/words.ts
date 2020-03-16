@@ -1,18 +1,16 @@
-const fs = require('fs').promises;
-const path = require('path');
-const express = require('express');
-const { Util } = require('./util');
+import { promises as fs } from 'fs';
+import path from 'path';
 
-const wordEndpoints = express.Router();
+import { Category, Group, isCategory, isGroup } from 'shared/interfaces';
 
-class Words {
-  constructor() {
-    this.loadCategories(path.resolve('words')).then(categories => (this.categories = categories));
-  }
+import { Util } from './util';
 
-  async loadCategories(dir) {
+export class Words {
+  private categories: (Category | Group)[] = [];
+
+  async loadCategories(dir: string): Promise<(Category | Group)[]> {
     const categories = await fs.readdir(dir);
-    const wordFiles = await Promise.all(
+    return Promise.all(
       categories.map(async file => {
         const filePath = path.join(dir, file);
         const stats = await fs.stat(filePath);
@@ -21,22 +19,22 @@ class Words {
             name: path.basename(filePath),
             categories: await this.loadCategories(filePath),
           };
-        } else if (stats.isFile())
+        } else {
           return {
             id: Util.encodeHex(Buffer.from(path.relative(process.cwd(), filePath)).toString('hex')),
             name: path.basename(filePath, '.json'),
           };
+        }
       }),
     );
-
-    return wordFiles;
   }
 
-  getCategories() {
+  async getCategories() {
+    if (!this.categories) this.categories = await this.loadCategories(path.resolve('words'));
     return this.categories;
   }
 
-  async getWord(categoryId) {
+  async getWord(categoryId: string) {
     const category = Words.findCategory(this.categories, categoryId);
     if (!category) return null;
     const categoryFile = path.resolve(Buffer.from(Util.decodeHex(category.id), 'hex').toString('utf8'));
@@ -44,13 +42,11 @@ class Words {
     return Util.random(words);
   }
 
-  static findCategory(categories, id) {
+  static findCategory(categories: (Category | Group)[], id: string): Category | null {
     for (const category of categories) {
-      if (category.id === id) return category;
-      if (category.categories) return Words.findCategory(category.categories, id);
+      if (isCategory(category) && category.id === id) return category;
+      if (isGroup(category) && category.categories.length) return Words.findCategory(category.categories, id);
     }
     return null;
   }
 }
-
-module.exports = { Words };

@@ -1,9 +1,14 @@
-const sockjs = require('sockjs');
+import { Server } from 'http';
 
-const { EventEmitter } = require('./emitter');
+import sockjs, { Server as SocketServer, Connection } from 'sockjs';
 
-class Socket extends EventEmitter {
-  constructor(server) {
+import { EventEmitter } from './emitter';
+
+export class Socket extends EventEmitter {
+  private socket: SocketServer | undefined;
+  private connections: { [socketSession: string]: Connection };
+
+  constructor(server: Server) {
     super();
 
     this.socket = sockjs.createServer({
@@ -31,12 +36,12 @@ class Socket extends EventEmitter {
     this.socket.installHandlers(server);
   }
 
-  getConnection(socketSession) {
+  getConnection(socketSession: string) {
     return this.connections[socketSession];
   }
 
-  close(socketSessions, code = 410, reason = 'Cleanup') {
-    const close = socketSession => {
+  close(socketSessions: string, code = '410', reason = 'Cleanup') {
+    const close = (socketSession: string) => {
       const connection = this.connections[socketSession];
       if (connection) connection.close(code, reason);
     };
@@ -47,9 +52,9 @@ class Socket extends EventEmitter {
     }
   }
 
-  broadcastTo(socketSessions, type, detail, exclude) {
+  broadcastTo(socketSessions: string, type: string, detail: any, exclude?: string[]) {
     const payload = JSON.stringify({ type, detail });
-    const send = socketSession => {
+    const send = (socketSession: string) => {
       const connection = this.connections[socketSession];
       if (connection) connection.write(payload);
     };
@@ -64,7 +69,7 @@ class Socket extends EventEmitter {
     }
   }
 
-  broadcastAll(type, detail, exclude) {
+  broadcastAll(type: string, detail: any, exclude?: string[]) {
     const payload = JSON.stringify({ type, detail });
     for (const socketSession in this.connections) {
       if (Array.isArray(exclude) && exclude.includes(socketSession)) continue;
@@ -73,7 +78,3 @@ class Socket extends EventEmitter {
     }
   }
 }
-
-module.exports = {
-  Socket,
-};

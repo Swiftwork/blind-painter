@@ -30,7 +30,7 @@ export class Socket {
     if (this.socket) this.socket.send(JSON.stringify({ type, detail }));
   }
 
-  private onOpen = (event: OpenEvent) => {
+  private onOpen = (_: OpenEvent) => {
     this.dispatch({ type: 'SOCKET', payload: { status: 'connected' } });
   };
 

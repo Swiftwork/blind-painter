@@ -1,4 +1,4 @@
-const Hashids = require('hashids/cjs');
+import Hashids from 'hashids';
 const hashids = new Hashids('', 5, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 const colors = [
   '#91278e',
@@ -14,8 +14,8 @@ const colors = [
   '#56787d',
 ];
 
-class Util {
-  static shuffle(array) {
+export class Util {
+  static shuffle(array: any[]) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
@@ -23,29 +23,27 @@ class Util {
     return array;
   }
 
-  static random(array) {
+  static random(array: any[]) {
     return array[Math.floor(Math.random() * array.length)];
   }
 
-  static encode(n) {
+  static encode(n: number) {
     return hashids.encode(n);
   }
 
-  static encodeHex(str) {
+  static encodeHex(str: string) {
     return hashids.encodeHex(str);
   }
 
-  static decode(n) {
-    return hashids.decode(n);
+  static decode(str: string) {
+    return hashids.decode(str);
   }
 
-  static decodeHex(str) {
+  static decodeHex(str: string) {
     return hashids.decodeHex(str);
   }
 
-  static getColor(i) {
+  static getColor(i: number) {
     return colors[i];
   }
 }
-
-module.exports = { Util };
