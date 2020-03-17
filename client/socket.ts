@@ -38,7 +38,7 @@ export class Socket {
     const { type, detail }: SocketEvent = JSON.parse(event.data);
     console.log(`Socket: ${type}`);
     if (type != 'error') {
-      this.dispatch({ type: `S2C_${type}`, payload: detail } as SessionAction);
+      this.dispatch({ type, payload: detail } as SessionAction);
     } else {
       console.warn(`[SOCKET | ${detail.code}]: ${detail.reason}`);
     }

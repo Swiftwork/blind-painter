@@ -4,7 +4,6 @@ import { parse } from 'url';
 import express from 'express';
 import next from 'next';
 
-import { sessions } from './sessions';
 import { Socket } from './socket';
 import { Logic } from './logic';
 
@@ -17,7 +16,7 @@ const nextHandler = nextApp.getRequestHandler();
 
 nextApp.prepare().then(() => {
   const socket = new Socket(server);
-  new Logic(sessions, socket);
+  new Logic(socket);
 
   app.use((req: IncomingMessage, res: ServerResponse) => {
     const parsedUrl = parse(req.url || '', true);

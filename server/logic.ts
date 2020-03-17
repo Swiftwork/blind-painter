@@ -1,6 +1,6 @@
 import { Util } from './util';
 import { Words } from './words';
-import { Session } from './sessions';
+import { Session, sessions } from './sessions';
 import {
   SocketPayload,
   C2SStartPayload,
@@ -13,14 +13,12 @@ import {
 import { Socket } from './socket';
 
 export class Logic {
-  private sessions: Map<string, Session>;
   private socket: Socket;
   private timers: { [code: string]: NodeJS.Timeout } = {};
   private tick = 1000;
   private words: Words;
 
-  constructor(sessions: Map<string, Session>, socket: Socket) {
-    this.sessions = sessions;
+  constructor(socket: Socket) {
     this.socket = socket;
     this.words = new Words();
 
@@ -42,7 +40,7 @@ export class Logic {
 
   getSessionClient(socketSession: string) {
     const [code] = socketSession.split('-');
-    const session = this.sessions.get(code);
+    const session = sessions.get(code);
     if (session) {
       const client = session.getClient(socketSession);
       return { session, client };
@@ -260,6 +258,6 @@ export class Logic {
   cleanup(session: Session) {
     clearInterval(this.timers[session.code]);
     this.socket.close(session.getIds(), 410, 'Session has ended');
-    this.sessions.delete(session.code);
+    sessions.delete(session.code);
   }
 }

@@ -1,20 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { sessions, Session } from 'server/sessions';
+import { Session, sessions } from 'server/sessions';
 import { Util } from 'server/util';
 
-/** Fetches or creates a new session based on code
- * @param {string} [code] code identifying the session
- */
-function getSession(code?: string, create = true) {
-  let session;
-  if (typeof code === 'string') {
-    code = code.toUpperCase();
-    session = sessions.get(code);
-  } else if (create) {
-    code = Util.encode(Date.now() % (1000 * 60 * 60));
-    sessions.set(code, (session = new Session(code)));
-  }
+/** Creates a new session based on code */
+function createSession() {
+  const code = Util.encode(Date.now() % (1000 * 60 * 60));
+  const session = new Session(code);
+  sessions.set(code, session);
   return { code, session };
 }
 
@@ -29,7 +22,7 @@ function post(req: NextApiRequest, res: NextApiResponse) {
   } = req;
   console.log(`Requesting a new session using name ${name} and participation ${participant}`);
   if (!name) return errorMessage(res, 400, `You must supply a name in request body`);
-  const { code, session } = getSession();
+  const { code, session } = createSession();
   const client = session.newClient(name, participant);
   res.send({ code, client });
 }

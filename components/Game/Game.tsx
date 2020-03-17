@@ -59,7 +59,9 @@ export class Game extends Component<Props, State> {
   }
 
   playTheme = () => {
-    if (this.context.hostId == this.context.clientId && this.music) this.music.play();
+    if (this.context.hostId == this.context.clientId && this.music) {
+      this.music.play().catch(() => {});
+    }
   };
 
   componentDidUpdate() {
