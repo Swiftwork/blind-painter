@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import { Client } from 'context/interfaces';
 import { SessionContext } from 'context/store';
 import { Util } from 'client/util';
+import { Client } from 'shared/interfaces';
 
 import s from './Players.module.css';
 

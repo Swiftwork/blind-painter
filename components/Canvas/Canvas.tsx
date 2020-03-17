@@ -1,7 +1,7 @@
 import React, { Component, createRef, MouseEvent as RMouseEvent, TouchEvent as RTouchEvent } from 'react';
 
-import { Point } from 'context/interfaces';
 import { SessionContext } from 'context/store';
+import { Point } from 'shared/interfaces';
 
 import s from './Canvas.module.css';
 

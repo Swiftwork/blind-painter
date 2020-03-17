@@ -8,9 +8,7 @@ import {
   C2SDrawPayload,
   C2SKickPayload,
   C2SUndoPayload,
-  C2STurnPayload,
   C2SGuessPayload,
-  C2SEndPayload,
 } from 'shared/actions';
 import { Socket } from './socket';
 
@@ -166,7 +164,7 @@ export class Logic {
     this.socket.broadcastTo(ids, 'S2C_UNDO', { clientId: socketSession, count }, [socketSession]);
   };
 
-  onTurn = ({ socketSession }: C2STurnPayload & SocketPayload) => {
+  onTurn = ({ socketSession }: SocketPayload) => {
     console.log('logic onTurn', socketSession);
     const { session } = this.getSessionClient(socketSession);
     if (!session) return;
@@ -250,7 +248,7 @@ export class Logic {
     }, this.tick);
   }
 
-  onEnd = ({ socketSession }: C2SEndPayload & SocketPayload) => {
+  onEnd = ({ socketSession }: SocketPayload) => {
     console.log('logic onEnd', socketSession);
     const { session } = this.getSessionClient(socketSession);
     if (!session) return;

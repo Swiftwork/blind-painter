@@ -1,7 +1,8 @@
 import { createContext } from 'react';
-import { Session, Client } from './interfaces';
+import { Client, Session } from 'shared/interfaces';
+import { SessionWithDispatch } from 'shared/actions';
 
-export const defaultSession: Session = {
+export const defaultSession: SessionWithDispatch = {
   code: '',
   stage: 'none',
   clientId: '',
