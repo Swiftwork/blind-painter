@@ -1,5 +1,4 @@
-import { Client } from 'context/interfaces';
-import { Category, Group } from 'shared/interfaces';
+import { Category, Group, Client } from 'shared/interfaces';
 
 export interface SessionClient {
   code: string;

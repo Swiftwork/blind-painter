@@ -69,7 +69,7 @@ export class Canvas extends Component<Props, State> {
     if (this.context.turnId !== this.context.clientId) return;
     event.preventDefault();
     this.isDrawing = true;
-    this.context.dispatch({ type: 'DRAW_START', payload: { points: Canvas.GetCoords(event, this.state.scale) } });
+    this.context.dispatch({ type: 'C2S_DRAW_START', payload: { points: Canvas.GetCoords(event, this.state.scale) } });
   };
 
   onTouchMove = (event: RTouchEvent | RMouseEvent) => {
@@ -77,7 +77,7 @@ export class Canvas extends Component<Props, State> {
     event.preventDefault();
     if (!this.inputThrottle && this.isDrawing) {
       this.inputThrottle = true;
-      this.context.dispatch({ type: 'DRAW', payload: { points: Canvas.GetCoords(event, this.state.scale) } });
+      this.context.dispatch({ type: 'C2S_DRAW', payload: { points: Canvas.GetCoords(event, this.state.scale) } });
       setTimeout(() => {
         this.inputThrottle = false;
       }, this.drawTime / 2);

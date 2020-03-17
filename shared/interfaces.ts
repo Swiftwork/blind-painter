@@ -1,3 +1,40 @@
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  color: string;
+  connected: boolean;
+  participant: boolean;
+  iterations: Point[][][];
+}
+
+export type Stage = 'none' | 'lobby' | 'started' | 'guessing' | 'ended';
+
+export interface Session {
+  code: string;
+  stage: Stage;
+  clientId: string;
+  connected: boolean;
+  rounds: number;
+  currentRound: number;
+  elapsed: number;
+  turnDuration: number;
+  turnElapsed: number;
+  turnOrder: string[];
+  turnId: string | undefined;
+  hostId: string | undefined;
+  blindId: string | undefined;
+  subject: string | undefined;
+  suspects: string[];
+  guesses: string[];
+  blind: boolean;
+  clients: Map<string, Client>;
+}
+
 export interface Category {
   id: string;
   name: string;

@@ -28,7 +28,7 @@ export class Guess extends Component<Props, State> {
   onSubmit = (event: FormEvent) => {
     if (!this.state.guess) return;
     event.preventDefault();
-    this.context.dispatch({ type: 'GUESS', payload: { guess: this.state.guess } });
+    this.context.dispatch({ type: 'C2S_GUESS', payload: { guess: this.state.guess } });
     this.setState({ sent: true });
   };
 

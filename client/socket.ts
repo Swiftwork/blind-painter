@@ -1,5 +1,5 @@
 import sockjs, { Options, OpenEvent, MessageEvent, CloseEvent } from 'sockjs-client';
-import { SessionAction } from '../context/interfaces';
+import { SessionAction } from 'shared/actions';
 
 export interface SocketEvent {
   type: string;
@@ -31,14 +31,14 @@ export class Socket {
   }
 
   private onOpen = (_: OpenEvent) => {
-    this.dispatch({ type: 'SOCKET', payload: { status: 'connected' } });
+    this.dispatch({ type: 'S2C_SOCKET', payload: { status: 'opened' } });
   };
 
   private onMessage = (event: MessageEvent) => {
     const { type, detail }: SocketEvent = JSON.parse(event.data);
     console.log(`Socket: ${type}`);
     if (type != 'error') {
-      this.dispatch({ type: `RECEIVE_${type}`, payload: detail } as SessionAction);
+      this.dispatch({ type: `S2C_${type}`, payload: detail } as SessionAction);
     } else {
       console.warn(`[SOCKET | ${detail.code}]: ${detail.reason}`);
     }
@@ -52,7 +52,7 @@ export class Socket {
       this.socket.removeEventListener('close', this.onClose);
       this.socket = undefined;
     }
-    this.dispatch({ type: 'SOCKET', payload: { status: 'disconnected' } });
-    this.dispatch({ type: 'RESET' });
+    this.dispatch({ type: 'S2C_SOCKET', payload: { status: 'closed' } });
+    //this.dispatch({ type: 'RESET' });
   };
 }

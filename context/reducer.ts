@@ -1,5 +1,6 @@
 import { defaultSession } from './store';
-import { Session, SessionAction } from './interfaces';
+import { SessionAction } from 'shared/actions';
+import { Session } from 'shared/interfaces';
 
 export function reducer(state: Session, action: SessionAction): Session {
   const getIteration = (id: string | undefined, session: Session) => {
@@ -15,15 +16,16 @@ export function reducer(state: Session, action: SessionAction): Session {
   };
 
   switch (action.type) {
-    case 'RESET': {
+    case 'C2S_RESET': {
+      // TODO: investigate
       return { ...state, ...defaultSession };
     }
 
-    case 'SOCKET': {
-      return { ...state, connected: action.payload.status == 'connected' ? true : false };
+    case 'S2C_SOCKET': {
+      return { ...state, connected: action.payload.status == 'opened' ? true : false };
     }
 
-    case 'RECEIVE_SESSION': {
+    case 'S2C_SESSION': {
       const { clients, ...session } = action.payload.session;
       const newState = { ...state, ...session };
       if (!newState.clientId && action.payload.client.id) newState.clientId = action.payload.client.id;
@@ -31,13 +33,13 @@ export function reducer(state: Session, action: SessionAction): Session {
       return newState;
     }
 
-    case 'RECEIVE_CONNECTION': {
+    case 'S2C_CONNECTION': {
       const client = state.clients.get(action.payload.clientId);
       if (client) client.connected = action.payload.status == 'connected';
       return { ...state };
     }
 
-    case 'RECEIVE_START': {
+    case 'S2C_START': {
       return {
         ...state,
         stage: 'started',
@@ -47,16 +49,16 @@ export function reducer(state: Session, action: SessionAction): Session {
       };
     }
 
-    case 'RECEIVE_ROUND': {
+    case 'S2C_ROUND': {
       return { ...state, currentRound: action.payload.current };
     }
 
-    case 'RECEIVE_TURN': {
+    case 'S2C_TURN': {
       return { ...state, turnId: action.payload.clientId };
     }
 
-    case 'DRAW_START':
-    case 'RECEIVE_DRAW_START': {
+    case 'C2S_DRAW_START':
+    case 'S2C_DRAW_START': {
       const iteration = getIteration(action.payload.clientId, state);
       if (!iteration) return state;
 
@@ -67,8 +69,8 @@ export function reducer(state: Session, action: SessionAction): Session {
       return { ...state };
     }
 
-    case 'DRAW':
-    case 'RECEIVE_DRAW': {
+    case 'C2S_DRAW':
+    case 'S2C_DRAW': {
       const iteration = getIteration(action.payload.clientId, state);
       if (!iteration) return state;
       const segment = iteration[iteration.length - 1];
@@ -80,15 +82,15 @@ export function reducer(state: Session, action: SessionAction): Session {
       return { ...state };
     }
 
-    case 'KICK':
-    case 'RECEIVE_KICK': {
+    case 'C2S_KICK':
+    case 'S2C_KICK': {
       const { clients } = state;
       clients.delete(action.payload.clientId);
       return { ...state, clients };
     }
 
-    case 'UNDO':
-    case 'RECEIVE_UNDO': {
+    case 'C2S_UNDO':
+    case 'S2C_UNDO': {
       const iteration = getIteration(action.payload.clientId, state);
       if (!iteration) return state;
 
@@ -99,11 +101,11 @@ export function reducer(state: Session, action: SessionAction): Session {
       return { ...state };
     }
 
-    case 'RECEIVE_GUESS': {
+    case 'S2C_GUESS': {
       return { ...state, stage: 'guessing', turnId: undefined };
     }
 
-    case 'RECEIVE_END': {
+    case 'S2C_END': {
       return {
         ...state,
         stage: 'ended',
@@ -115,7 +117,7 @@ export function reducer(state: Session, action: SessionAction): Session {
     }
 
     default: {
-      if (action.type.startsWith('RECEIVE')) throw new Error(`Unhandled action type: ${action.type}`);
+      if (action.type.startsWith('S2C')) throw new Error(`Unhandled action type: ${action.type}`);
       return state;
     }
   }

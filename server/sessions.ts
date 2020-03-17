@@ -3,19 +3,18 @@ import { Util } from './util';
 export const sessions = new Map();
 
 export class Session {
-  private code: string;
-  private stage = 'lobby';
-  private rounds = 2;
-  private currentRound = 0;
-  private elapsed = 0;
-  private turnOrder = [];
-  private turnId: string | undefined;
-  private turnDuration = 1000 * 60;
-  private turnElapsed = 0;
-  private hostId: string | undefined;
-  private blindId: string | undefined;
-  private clients = new Map();
-
+  public code: string;
+  public stage = 'lobby';
+  public rounds = 2;
+  public currentRound = 0;
+  public elapsed = 0;
+  public turnOrder: string[] = [];
+  public turnId: string | undefined;
+  public turnDuration = 1000 * 60;
+  public turnElapsed = 0;
+  public hostId: string | undefined;
+  public blindId: string | undefined;
+  public clients = new Map();
   public currentTurn = 0;
   public subject: string | undefined;
 
@@ -52,7 +51,7 @@ export class Session {
    * @param {boolean} [participant] filter list. if omitted get all
    * @returns {string[]} list of client ids
    */
-  getIds(participant?: boolean) {
+  getIds(participant?: boolean): string[] {
     return Array.from(this.clients, ([_, client]) => {
       if (typeof participant === 'boolean' && participant === client.participant) {
         return client.id;

@@ -1,6 +1,7 @@
 import { Socket } from 'client/socket';
-import { SessionAction, Point } from './interfaces';
 import { Dispatch } from 'react';
+import { Point } from 'shared/interfaces';
+import { SessionAction } from 'shared/actions';
 
 let socket: Socket | undefined;
 let throttle = false;
@@ -8,32 +9,32 @@ const queuedPoints: Point[] = [];
 
 const sendPoints = (points: Point[]) => {
   if (!socket || !points.length) return;
-  socket.send('DRAW', { points });
+  socket.send('C2S_DRAW', { points });
   points.length = 0;
 };
 
 export const attachSocketDispatch = (dispatch: Dispatch<SessionAction>) => (action: SessionAction) => {
   switch (action.type) {
-    case 'RECEIVE_SESSION': {
+    case 'S2C_SESSION': {
       if (socket) return;
       socket = new Socket(dispatch);
       socket.open('/socket', action.payload.client.id);
       break;
     }
 
-    case 'START': {
+    case 'C2S_START': {
       socket && socket.send(action.type, action.payload);
       break;
     }
 
-    case 'DRAW_START': {
+    case 'C2S_DRAW_START': {
       const points = action.payload.points;
       Array.isArray(points) ? queuedPoints.push(...points) : queuedPoints.push(points);
       socket && socket.send(action.type, action.payload);
       break;
     }
 
-    case 'DRAW': {
+    case 'C2S_DRAW': {
       const points = action.payload.points;
       Array.isArray(points) ? queuedPoints.push(...points) : queuedPoints.push(points);
       if (!throttle) {
@@ -47,28 +48,28 @@ export const attachSocketDispatch = (dispatch: Dispatch<SessionAction>) => (acti
       break;
     }
 
-    case 'KICK': {
+    case 'C2S_KICK': {
       socket && socket.send(action.type, action.payload);
       break;
     }
 
-    case 'UNDO': {
+    case 'C2S_UNDO': {
       socket && socket.send(action.type, action.payload);
       break;
     }
 
-    case 'TURN': {
+    case 'C2S_TURN': {
       socket && socket.send(action.type);
       break;
     }
 
-    case 'GUESS': {
+    case 'C2S_GUESS': {
       socket && socket.send(action.type, action.payload);
       break;
     }
 
     default: {
-      if (!action.type.startsWith('RECEIVE')) throw new Error(`Unhandled action type: ${action.type}`);
+      if (action.type.startsWith('C2S')) throw new Error(`Unhandled action type: ${action.type}`);
       break;
     }
   }

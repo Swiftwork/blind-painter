@@ -13,17 +13,17 @@ export function Actions() {
 
   const onClear = () => {
     if (turnId !== clientId) return;
-    dispatch({ type: 'UNDO', payload: {} });
+    dispatch({ type: 'C2S_UNDO', payload: {} });
   };
 
   const onUndo = () => {
     if (turnId !== clientId) return;
-    dispatch({ type: 'UNDO', payload: { count: 1 } });
+    dispatch({ type: 'C2S_UNDO', payload: { count: 1 } });
   };
 
   const onSubmit = () => {
     if (turnId !== clientId) return;
-    dispatch({ type: 'TURN' });
+    dispatch({ type: 'C2S_TURN' });
   };
 
   return (

@@ -54,7 +54,7 @@ export class Players extends Component<Props> {
                 }}
                 onClick={() => {
                   if (this.context.clientId === this.context.hostId)
-                    this.context.dispatch({ type: 'KICK', payload: { clientId: client.id } });
+                    this.context.dispatch({ type: 'C2S_KICK', payload: { clientId: client.id } });
                 }}
               />
             )

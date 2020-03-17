@@ -15,7 +15,7 @@ const colors = [
 ];
 
 export class Util {
-  static shuffle(array: any[]) {
+  static shuffle<T>(array: T[]): T[] {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
@@ -23,7 +23,7 @@ export class Util {
     return array;
   }
 
-  static random(array: any[]) {
+  static random<T>(array: T[]): T {
     return array[Math.floor(Math.random() * array.length)];
   }
 

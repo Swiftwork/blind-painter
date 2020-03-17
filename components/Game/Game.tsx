@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 
 import { SessionContext, storeSession } from 'context/store';
-import { Stage } from 'context/interfaces';
 
 import { Server, SessionClient } from 'client/server';
 
@@ -17,6 +16,7 @@ import { Reveal } from 'components/Reveal/Reveal';
 import { Timer } from 'components/Timer/Timer';
 
 import ThemeMusic from 'assets/sounds/theme.mp3';
+import { Stage } from 'shared/interfaces';
 
 interface Props {}
 
@@ -87,16 +87,16 @@ export class Game extends Component<Props, State> {
 
   onSession = ({ code, client }: SessionClient) => {
     this.playTheme();
-    this.context.dispatch({ type: 'RECEIVE_SESSION', payload: { session: { code }, client } });
+    this.context.dispatch({ type: 'S2C_SESSION', payload: { session: { code }, client } });
   };
 
   onStart = (categoryId: string) => {
-    this.context.dispatch({ type: 'START', payload: { categoryId } });
+    this.context.dispatch({ type: 'C2S_START', payload: { categoryId } });
   };
 
   onQuit = () => {
-    this.context.dispatch({ type: 'END' });
-    this.context.dispatch({ type: 'RESET' });
+    this.context.dispatch({ type: 'C2S_END' });
+    this.context.dispatch({ type: 'C2S_RESET' });
   };
 
   private allowedStage(...stages: (Stage | 'all')[]) {

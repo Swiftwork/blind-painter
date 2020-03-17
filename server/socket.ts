@@ -40,10 +40,10 @@ export class Socket extends EventEmitter {
     return this.connections[socketSession];
   }
 
-  close(socketSessions: string, code = '410', reason = 'Cleanup') {
+  close(socketSessions: string | string[], code = 410, reason = 'Cleanup') {
     const close = (socketSession: string) => {
       const connection = this.connections[socketSession];
-      if (connection) connection.close(code, reason);
+      if (connection) connection.close(code.toString(), reason);
     };
     if (Array.isArray(socketSessions)) {
       for (const socketSession of socketSessions) close(socketSession);
@@ -52,7 +52,7 @@ export class Socket extends EventEmitter {
     }
   }
 
-  broadcastTo(socketSessions: string, type: string, detail: any, exclude?: string[]) {
+  broadcastTo(socketSessions: string | string[], type: string, detail?: any, exclude?: string[]) {
     const payload = JSON.stringify({ type, detail });
     const send = (socketSession: string) => {
       const connection = this.connections[socketSession];
