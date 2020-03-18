@@ -6,14 +6,6 @@
   "editor.tabSize": 2,
   "eslint.validate": ["javascript", "typescript"],
   "files.insertFinalNewline": true,
-  "highlight.regexes": {
-    "(Lang\\.[\\wåäöÅÄÖ.]+)": {
-      "color": "#98c379"
-    },
-    "(\\/\\/ ?(todo|ToDo|TODO):.+)": {
-      "color": "#ffa8e0"
-    }
-  },
   "html.format.wrapAttributes": "force",
   "search.exclude": {
     "**/node_modules": true,

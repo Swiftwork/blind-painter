@@ -1,3 +1,4 @@
+/*
 module.exports = {
   presets: [
     [
@@ -25,6 +26,30 @@ module.exports = {
     ['@babel/plugin-proposal-optional-chaining'],
     ['@babel/plugin-proposal-nullish-coalescing-operator'],
     ['@babel/plugin-transform-runtime'],
-    ['react-hot-loader/babel'],
   ],
+};
+*/
+
+module.exports = {
+  plugins: [
+    [
+      '@babel/plugin-transform-typescript',
+      {
+        isTSX: true,
+        allExtensions: true,
+        allowDeclareFields: true,
+      },
+    ],
+  ],
+  env: {
+    development: {
+      presets: [['next/babel']],
+    },
+    production: {
+      presets: [['next/babel']],
+    },
+    test: {
+      presets: [['next/babel', { 'preset-env': { modules: 'commonjs' } }]],
+    },
+  },
 };

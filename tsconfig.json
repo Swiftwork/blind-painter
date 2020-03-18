@@ -8,16 +8,21 @@
     "jsx": "preserve",
     "moduleResolution": "node",
     "experimentalDecorators": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
     "noEmit": true,
-    "baseUrl": "./client",
+    "baseUrl": "./",
     "types": [],
     "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
     "paths": {
       "*": ["*"]
     }
   },
-  "include": ["client/**/*.ts", "client/**/*.tsx"],
+  "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }

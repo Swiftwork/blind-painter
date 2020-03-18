@@ -2,8 +2,9 @@
 
 .cache
 node_modules
-dist
 resources
+.next
+dist
 
 # Logs
 *.log
