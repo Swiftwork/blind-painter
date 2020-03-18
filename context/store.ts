@@ -7,6 +7,7 @@ export const defaultSession: SessionWithDispatch = {
   stage: 'none',
   clientId: '',
   connected: false,
+  socket: false,
   rounds: 2,
   currentRound: 0,
   elapsed: 0,

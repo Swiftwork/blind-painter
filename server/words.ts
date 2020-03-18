@@ -30,7 +30,7 @@ export class Words {
   }
 
   async getCategories() {
-    if (!this.categories) this.categories = await this.loadCategories(path.resolve('words'));
+    if (!this.categories.length) this.categories = await this.loadCategories(path.resolve('words'));
     return this.categories;
   }
 
@@ -42,11 +42,24 @@ export class Words {
     return Util.random(words);
   }
 
-  static findCategory(categories: (Category | Group)[], id: string): Category | null {
-    for (const category of categories) {
-      if (isCategory(category) && category.id === id) return category;
-      if (isGroup(category) && category.categories.length) return Words.findCategory(category.categories, id);
-    }
-    return null;
+  static findCategory(categories: (Category | Group)[], id: string): Category | undefined {
+    let result: Category | undefined;
+    const exists = (category: Category | Group) => {
+      if (isCategory(category) && category.id === id) {
+        result = category;
+        return true;
+      }
+      if (isGroup(category) && category.categories.length) return category.categories.some(exists);
+    };
+    categories.some(exists);
+    return result;
   }
 }
+
+const WORDS_KEY = Symbol.for('Blind.Painter.words');
+
+if (Object.getOwnPropertySymbols(global).indexOf(WORDS_KEY) === -1) {
+  (global as any)[WORDS_KEY] = new Words();
+}
+
+export const words: Words = (global as any)[WORDS_KEY];

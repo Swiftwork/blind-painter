@@ -1,5 +1,5 @@
 import { Util } from './util';
-import { Words } from './words';
+import { words } from './words';
 import { Session, sessions } from './sessions';
 import {
   SocketPayload,
@@ -16,11 +16,9 @@ export class Logic {
   private socket: Socket;
   private timers: { [code: string]: NodeJS.Timeout } = {};
   private tick = 1000;
-  private words: Words;
 
   constructor(socket: Socket) {
     this.socket = socket;
-    this.words = new Words();
 
     /* EVENTS */
     socket.on('SESSION', this.onSession);
@@ -82,7 +80,7 @@ export class Logic {
     const criticIds = session.getIds(false);
     session.turnOrder = Util.shuffle(participantIds);
     session.blindId = Util.random(participantIds);
-    session.subject = await this.words.getWord(categoryId);
+    session.subject = await words.getWord(categoryId);
     session.stage = 'started';
     this.socket.broadcastTo(
       participantIds,

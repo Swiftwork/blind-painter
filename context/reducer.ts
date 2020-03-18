@@ -22,7 +22,7 @@ export function reducer(state: Session, action: SessionAction): Session {
     }
 
     case 'S2C_SOCKET': {
-      return { ...state, connected: action.payload.status == 'opened' ? true : false };
+      return { ...state, socket: action.payload.status == 'opened' ? true : false };
     }
 
     case 'S2C_SESSION': {

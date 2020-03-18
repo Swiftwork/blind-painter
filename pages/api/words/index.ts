@@ -1,7 +1,5 @@
-import { Words } from 'server/words';
+import { words } from 'server/words';
 import { NextApiRequest, NextApiResponse } from 'next';
-
-const words = new Words();
 
 export default async (_req: NextApiRequest, res: NextApiResponse) => {
   res.statusCode = 200;

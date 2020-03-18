@@ -19,6 +19,7 @@ export interface Session {
   stage: Stage;
   clientId: string;
   connected: boolean;
+  socket: boolean;
   rounds: number;
   currentRound: number;
   elapsed: number;
