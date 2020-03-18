@@ -7,12 +7,13 @@ export interface Client {
   id: string;
   name: string;
   color: string;
+  guess: string | undefined;
   connected: boolean;
   participant: boolean;
   iterations: Point[][][];
 }
 
-export type Stage = 'none' | 'lobby' | 'started' | 'guessing' | 'ended';
+export type Stage = 'none' | 'lobby' | 'started' | 'guessing' | 'reveal';
 
 export interface Session {
   code: string;
@@ -29,6 +30,7 @@ export interface Session {
   turnId: string | undefined;
   hostId: string | undefined;
   blindId: string | undefined;
+  category: string | undefined;
   subject: string | undefined;
   suspects: string[];
   guesses: string[];

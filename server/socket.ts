@@ -3,8 +3,9 @@ import { Server } from 'http';
 import sockjs, { Server as SocketServer, Connection } from 'sockjs';
 
 import { EventEmitter } from './emitter';
+import { S2CAction, C2SAction, SocketPayload } from 'shared/actions';
 
-export class Socket extends EventEmitter {
+export class Socket extends EventEmitter<'SESSION' | 'CONNECTION' | 'ACTION'> {
   private socket: SocketServer | undefined;
   private connections: { [socketSession: string]: Connection };
 
@@ -28,8 +29,8 @@ export class Socket extends EventEmitter {
       });
 
       connection.on('data', event => {
-        const { type, detail } = JSON.parse(event);
-        this.emit(type, { socketSession, ...detail });
+        const action: C2SAction & { payload: SocketPayload } = JSON.parse(event);
+        this.emit('ACTION', { ...action, payload: { socketSession, ...action.payload } });
       });
     });
 
@@ -40,7 +41,7 @@ export class Socket extends EventEmitter {
     return this.connections[socketSession];
   }
 
-  close(socketSessions: string | string[], code = 410, reason = 'Cleanup') {
+  close(socketSessions: string | string[], code = 1000, reason = 'Manually closed') {
     const close = (socketSession: string) => {
       const connection = this.connections[socketSession];
       if (connection) connection.close(code.toString(), reason);
@@ -52,11 +53,11 @@ export class Socket extends EventEmitter {
     }
   }
 
-  broadcastTo(socketSessions: string | string[], type: string, detail?: any, exclude?: string[]) {
-    const payload = JSON.stringify({ type, detail });
+  broadcastTo(socketSessions: string | string[], action: S2CAction, exclude?: string[]) {
+    const message = JSON.stringify(action);
     const send = (socketSession: string) => {
       const connection = this.connections[socketSession];
-      if (connection) connection.write(payload);
+      if (connection) connection.write(message);
     };
 
     if (Array.isArray(socketSessions)) {
@@ -69,12 +70,12 @@ export class Socket extends EventEmitter {
     }
   }
 
-  broadcastAll(type: string, detail: any, exclude?: string[]) {
-    const payload = JSON.stringify({ type, detail });
+  broadcastAll(action: S2CAction, exclude?: string[]) {
+    const message = JSON.stringify(action);
     for (const socketSession in this.connections) {
       if (Array.isArray(exclude) && exclude.includes(socketSession)) continue;
       const connection = this.connections[socketSession];
-      if (connection) connection.write(payload);
+      if (connection) connection.write(message);
     }
   }
 }

@@ -36,10 +36,10 @@ export class Words {
 
   async getWord(categoryId: string) {
     const category = Words.findCategory(this.categories, categoryId);
-    if (!category) return;
+    if (!category) return { category: undefined, word: undefined };
     const categoryFile = path.resolve(Buffer.from(Util.decodeHex(category.id), 'hex').toString('utf8'));
     const words: string[] = await fs.readFile(categoryFile, 'utf8').then(JSON.parse);
-    return Util.random(words);
+    return { category: category.name, word: Util.random(words) };
   }
 
   static findCategory(categories: (Category | Group)[], id: string): Category | undefined {

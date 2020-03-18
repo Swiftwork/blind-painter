@@ -67,7 +67,6 @@ export class Menu extends Component<Props, State> {
 
   componentDidUpdate() {
     if (this.qrCanvas.current && this.qrRendered !== this.context.code) {
-      this.setState({ stage: 'code' });
       QRCode.toCanvas(this.qrCanvas.current, `${window.location.href.split('?')[0]}?code=${this.context.code}`, err => {
         if (err) return console.warn('Failed to render QR code');
         this.qrRendered = this.context.code;
@@ -96,7 +95,11 @@ export class Menu extends Component<Props, State> {
             value={this.state.code}
             onChange={event => this.setState({ code: event.currentTarget.value })}
           />
-          <button type="button" className={s.button} onClick={() => this.setState({ stage: 'name', host: false })}>
+          <button
+            type="button"
+            className={s.button}
+            disabled={!this.state.code}
+            onClick={() => this.setState({ stage: 'name', host: false })}>
             Attend venue
           </button>
         </menu>
@@ -123,7 +126,9 @@ export class Menu extends Component<Props, State> {
         <button
           className={s.button}
           type="button"
+          disabled={!this.state.name}
           onClick={() => {
+            this.setState({ stage: 'code', code: '', name: '' });
             this.props.onConnect(true, this.state.name, this.state.code);
           }}>
           Join as painter
@@ -131,7 +136,9 @@ export class Menu extends Component<Props, State> {
         <button
           className={s.button}
           type="button"
+          disabled={!this.state.name}
           onClick={() => {
+            this.setState({ stage: 'code', code: '', name: '' });
             this.props.onConnect(false, this.state.name, this.state.code);
           }}>
           Join as critic

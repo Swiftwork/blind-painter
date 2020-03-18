@@ -9,28 +9,27 @@ const queuedPoints: Point[] = [];
 
 const sendPoints = (points: Point[]) => {
   if (!socket || !points.length) return;
-  socket.send('C2S_DRAW', { points });
+  socket.send({ type: 'C2S_DRAW', payload: { points } });
   points.length = 0;
 };
 
 export const attachSocketDispatch = (dispatch: Dispatch<SessionAction>) => (action: SessionAction) => {
   switch (action.type) {
     case 'S2C_SESSION': {
-      if (socket) return;
-      socket = new Socket(dispatch);
-      socket.open('/socket', action.payload.client.id);
+      if (!socket) socket = new Socket(dispatch);
+      if (!socket.connected) socket.open('/socket', action.payload.client.id);
       break;
     }
 
     case 'C2S_START': {
-      socket && socket.send(action.type, action.payload);
+      socket && socket.send(action);
       break;
     }
 
     case 'C2S_DRAW_START': {
       const points = action.payload.points;
       Array.isArray(points) ? queuedPoints.push(...points) : queuedPoints.push(points);
-      socket && socket.send(action.type, action.payload);
+      socket && socket.send(action);
       break;
     }
 
@@ -49,22 +48,30 @@ export const attachSocketDispatch = (dispatch: Dispatch<SessionAction>) => (acti
     }
 
     case 'C2S_KICK': {
-      socket && socket.send(action.type, action.payload);
+      socket && socket.send(action);
       break;
     }
 
     case 'C2S_UNDO': {
-      socket && socket.send(action.type, action.payload);
+      socket && socket.send(action);
       break;
     }
 
     case 'C2S_TURN': {
-      socket && socket.send(action.type);
+      socket && socket.send(action);
       break;
     }
 
     case 'C2S_GUESS': {
-      socket && socket.send(action.type, action.payload);
+      socket && socket.send(action);
+      break;
+    }
+
+    case 'C2S_END': {
+      if (socket) {
+        socket.send(action);
+        socket.close(1000, 'Ending session');
+      }
       break;
     }
 

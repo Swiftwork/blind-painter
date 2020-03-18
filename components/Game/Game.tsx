@@ -98,7 +98,6 @@ export class Game extends Component<Props, State> {
 
   onQuit = () => {
     this.context.dispatch({ type: 'C2S_END' });
-    this.context.dispatch({ type: 'C2S_RESET' });
   };
 
   private allowedStage(...stages: (Stage | 'all')[]) {
@@ -110,7 +109,7 @@ export class Game extends Component<Props, State> {
       <>
         {this.allowedStage('started', 'guessing') && <Canvas />}
         {this.allowedStage('none', 'lobby') && <Splash />}
-        {this.allowedStage('lobby', 'started', 'guessing', 'ended') && <Players />}
+        {this.allowedStage('lobby', 'started', 'guessing', 'reveal') && <Players />}
         {this.allowedStage('none', 'lobby') && (
           <Menu onConnect={this.onConnect} onStart={this.onStart} onQuit={this.onQuit} />
         )}
@@ -118,7 +117,7 @@ export class Game extends Component<Props, State> {
         {this.allowedStage('started', 'guessing') && <Timer />}
         {this.allowedStage('started') && <Subject />}
         {this.allowedStage('guessing') && <Guess />}
-        {this.allowedStage('ended') && <Reveal />}
+        {this.allowedStage('reveal') && <Reveal />}
         {this.state.debug && <Debug />}
       </>
     );

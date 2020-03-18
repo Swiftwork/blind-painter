@@ -1,8 +1,9 @@
 import { Util } from './util';
+import { Stage, Client } from 'shared/interfaces';
 
 export class Session {
   public code: string;
-  public stage = 'lobby';
+  public stage: Stage = 'lobby';
   public rounds = 2;
   public currentRound = 0;
   public elapsed = 0;
@@ -12,8 +13,9 @@ export class Session {
   public turnElapsed = 0;
   public hostId: string | undefined;
   public blindId: string | undefined;
-  public clients = new Map();
+  public clients = new Map<string, Client>();
   public currentTurn = 0;
+  public category: string | undefined;
   public subject: string | undefined;
 
   constructor(code: string) {
@@ -23,7 +25,7 @@ export class Session {
   newClient(name: string, participant = true) {
     let id = Util.encode((Date.now() + 1) % (1000 * 60 * 60));
     id = `${this.code}-${id}`;
-    const client = {
+    const client: Client = {
       id,
       name,
       color: Util.getColor(this.clients.size),
@@ -56,20 +58,40 @@ export class Session {
       } else if (typeof participant === 'undefined') {
         return client.id;
       }
-      return undefined;
+      return '';
     }).filter(id => !!id);
   }
 
   getGuesses() {
     const suspects: string[] = [];
     const guesses: string[] = [];
-    const resolveName = (id: string) => this.clients.get(id).name;
+    const resolveName = (id: string) => this.clients.get(id)?.name;
     this.clients.forEach(client => {
       if (!client.guess) return;
-      if (client.participant && client.id !== this.blindId) return suspects.push(resolveName(client.guess));
+      if (client.participant && client.id !== this.blindId) {
+        const suspect = resolveName(client.guess);
+        if (suspect) suspects.push(suspect);
+        return;
+      }
       guesses.push(client.guess);
     });
     return { suspects, guesses };
+  }
+
+  reset() {
+    this.stage = 'lobby';
+    this.currentRound = 0;
+    this.elapsed = 0;
+    this.turnOrder = [];
+    this.turnId = undefined;
+    this.turnElapsed = 0;
+    this.blindId = undefined;
+    this.currentTurn = 0;
+    this.category = undefined;
+    this.subject = undefined;
+    this.clients.forEach(client => {
+      client.iterations = [];
+    });
   }
 
   toJSON() {
@@ -84,6 +106,7 @@ export class Session {
       turnDuration: this.turnDuration,
       turnElapsed: this.turnElapsed,
       hostId: this.hostId,
+      category: this.category,
       clients: Array.from(this.clients.entries(), ([id, client]) => {
         const { guess, ...strippedClient } = client;
         return [id, strippedClient];

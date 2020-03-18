@@ -1,6 +1,6 @@
 type Listener = (...args: any[]) => void;
 
-export class EventEmitter {
+export class EventEmitter<T extends string> {
   private events: { [event: string]: Set<Listener> } = {};
 
   getListeners(event: string) {
@@ -10,20 +10,20 @@ export class EventEmitter {
     return this.events[event];
   }
 
-  on(event: string, listener: Listener) {
+  on(event: T, listener: Listener) {
     this.getListeners(event).add(listener);
     return () => this.off(event, listener);
   }
 
-  off(event: string, listener: Listener) {
+  off(event: T, listener: Listener) {
     this.getListeners(event).delete(listener);
   }
 
-  emit(event: string, ...args: any[]) {
+  emit(event: T, ...args: any[]) {
     this.getListeners(event).forEach(listener => listener.apply(this, args));
   }
 
-  once(event: string, listener: Listener) {
+  once(event: T, listener: Listener) {
     const off = this.on(event, (...args) => {
       off();
       listener.apply(this, args);

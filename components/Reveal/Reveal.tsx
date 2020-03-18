@@ -126,7 +126,7 @@ export class Reveal extends Component<Props, State> {
       case 'guess':
         return 'These are your guesses based on the artwork:';
       case 'subject':
-        return 'The actual subject was:';
+        return 'The actual artwork was:';
       case 'ended':
         return 'Thank you for playing!';
     }
@@ -152,7 +152,11 @@ export class Reveal extends Component<Props, State> {
           </h3>
         )}
         {this.state.stage == 'subject' && (
-          <h3 className={s.answer}>{this.context.subject || `I don't know the subject`}</h3>
+          <h3 className={s.answer}>
+            {this.context.category || 'Category could not be determined'}
+            <br />
+            {this.context.subject || 'Subject could not be determined'}
+          </h3>
         )}
         {(this.state.stage == 'suspect' || this.state.stage == 'guess') && (
           <canvas className={s.canvas} ref={this.$canvas} width={this.state.width} height={this.state.height} />

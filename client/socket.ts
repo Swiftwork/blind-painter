@@ -1,5 +1,5 @@
 import sockjs, { Options, OpenEvent, MessageEvent, CloseEvent } from 'sockjs-client';
-import { SessionAction } from 'shared/actions';
+import { SessionAction, C2SAction, S2CAction } from 'shared/actions';
 
 export interface SocketEvent {
   type: string;
@@ -22,12 +22,12 @@ export class Socket {
     this.socket.addEventListener('close', this.onClose);
   }
 
-  close() {
-    if (this.socket) this.socket.close();
+  close(code = 1000, reason = 'Manually closed') {
+    if (this.socket) this.socket.close(code, reason);
   }
 
-  send(type: string, detail?: any) {
-    if (this.socket) this.socket.send(JSON.stringify({ type, detail }));
+  send(action: C2SAction) {
+    if (this.socket) this.socket.send(JSON.stringify(action));
   }
 
   private onOpen = (_: OpenEvent) => {
@@ -35,17 +35,17 @@ export class Socket {
   };
 
   private onMessage = (event: MessageEvent) => {
-    const { type, detail }: SocketEvent = JSON.parse(event.data);
-    console.log(`Socket: ${type}`);
-    if (type != 'error') {
-      this.dispatch({ type, payload: detail } as SessionAction);
+    const action: S2CAction = JSON.parse(event.data);
+    console.log(`Socket: ${action.type}`);
+    if (action.type != 'S2C_ERROR') {
+      this.dispatch(action);
     } else {
-      console.warn(`[SOCKET | ${detail.code}]: ${detail.reason}`);
+      console.warn(`[SOCKET | ${action.payload.code}]: ${action.payload.reason}`);
     }
   };
 
   private onClose = (event: CloseEvent) => {
-    console.warn(`[SOCKET | ${event.code}]: ${event.reason}`);
+    console.log(`[SOCKET | ${event.code}]: ${event.reason}`);
     if (this.socket) {
       this.socket.removeEventListener('open', this.onOpen);
       this.socket.removeEventListener('message', this.onMessage);
@@ -53,6 +53,6 @@ export class Socket {
       this.socket = undefined;
     }
     this.dispatch({ type: 'S2C_SOCKET', payload: { status: 'closed' } });
-    //this.dispatch({ type: 'RESET' });
+    this.dispatch({ type: 'S2C_END' });
   };
 }

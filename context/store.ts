@@ -17,6 +17,7 @@ export const defaultSession: SessionWithDispatch = {
   turnId: undefined,
   hostId: undefined,
   blindId: undefined,
+  category: undefined,
   subject: undefined,
   suspects: [],
   guesses: [],

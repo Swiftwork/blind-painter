@@ -35,7 +35,9 @@ export class Subject extends Component<Props, State> {
   public render() {
     return (
       <div className={`${s.subject}`} aria-hidden={!this.state.shown}>
-        {this.context.subject || 'Batman: The Dark Knight Rises'}
+        Category: {this.context.category || 'Category could not be determined'}
+        <br />
+        {this.context.subject || 'Subject could not be determined'}
       </div>
     );
   }

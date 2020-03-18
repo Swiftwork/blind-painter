@@ -16,11 +16,6 @@ export function reducer(state: Session, action: SessionAction): Session {
   };
 
   switch (action.type) {
-    case 'C2S_RESET': {
-      // TODO: investigate
-      return { ...state, ...defaultSession };
-    }
-
     case 'S2C_SOCKET': {
       return { ...state, socket: action.payload.status == 'opened' ? true : false };
     }
@@ -43,10 +38,25 @@ export function reducer(state: Session, action: SessionAction): Session {
       return {
         ...state,
         stage: 'started',
+        category: action.payload.category,
         subject: action.payload.subject,
         turnOrder: action.payload.turnOrder,
         blind: action.payload.blind,
       };
+    }
+
+    case 'S2C_RESET': {
+      const { clients, ...session } = action.payload.session;
+      const newState = { ...state, ...session };
+      if (clients) newState.clients = new Map(clients);
+      return newState;
+    }
+
+    case 'C2S_KICK':
+    case 'S2C_KICK': {
+      const { clients } = state;
+      clients.delete(action.payload.clientId);
+      return { ...state, clients };
     }
 
     case 'S2C_ROUND': {
@@ -82,13 +92,6 @@ export function reducer(state: Session, action: SessionAction): Session {
       return { ...state };
     }
 
-    case 'C2S_KICK':
-    case 'S2C_KICK': {
-      const { clients } = state;
-      clients.delete(action.payload.clientId);
-      return { ...state, clients };
-    }
-
     case 'C2S_UNDO':
     case 'S2C_UNDO': {
       const iteration = getIteration(action.payload.clientId, state);
@@ -105,15 +108,20 @@ export function reducer(state: Session, action: SessionAction): Session {
       return { ...state, stage: 'guessing', turnId: undefined };
     }
 
-    case 'S2C_END': {
+    case 'S2C_REVEAL': {
       return {
         ...state,
-        stage: 'ended',
+        stage: 'reveal',
+        category: action.payload.category,
         subject: action.payload.subject,
         blindId: action.payload.blindId,
         suspects: action.payload.suspects,
         guesses: action.payload.guesses,
       };
+    }
+
+    case 'S2C_END': {
+      return { ...state, ...defaultSession };
     }
 
     default: {
