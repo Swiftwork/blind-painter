@@ -86,6 +86,15 @@ export class Logic {
         { type: 'S2C_CONNECTION', payload: { clientId: socketSession, status } },
         status == 'disconnected' ? [socketSession] : undefined,
       );
+
+      if (Array.from(session.clients, ([_, client]) => client.connected).every(connected => !connected)) {
+        // Nobody is connected, end session after 3 minutes
+        this.timers[`${session.code}-ending`] = setTimeout(() => {
+          this.end(session);
+        }, 3 * 60 * 1000);
+      } else {
+        clearInterval(this.timers[`${session.code}-ending`]);
+      }
     }
   };
 
@@ -291,14 +300,17 @@ export class Logic {
     if (Array.from(session.clients.values()).every(client => !!client.guess)) this.advanceReveal(session);
   };
 
+  end(session: Session) {
+    clearInterval(this.timers[session.code]);
+    this.socket.close(session.getIds(), 1000, 'Session has ended');
+    sessions.delete(session.code);
+  }
+
   onEnd = ({ socketSession }: SocketPayload) => {
     console.log('logic onEnd', socketSession);
     const { session } = this.getSessionClient(socketSession);
     if (!session) return;
     if (session.hostId !== socketSession) return; // Only host can end the game
-
-    clearInterval(this.timers[session.code]);
-    this.socket.close(session.getIds(), 1000, 'Session has ended');
-    sessions.delete(session.code);
+    this.end(session);
   };
 }
