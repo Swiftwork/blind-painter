@@ -66,6 +66,7 @@ export class Guess extends Component<Props, State> {
           <input
             className={`${s.button} ${this.state.sent ? s.sent : ''}`}
             type="submit"
+            disabled={!this.state.guess}
             value={!this.state.sent ? 'send' : 'sent'}
           />
         </div>
