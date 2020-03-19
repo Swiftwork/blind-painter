@@ -88,10 +88,10 @@ export class Logic {
       );
 
       if (Array.from(session.clients, ([_, client]) => client.connected).every(connected => !connected)) {
-        // Nobody is connected, end session after 3 minutes
+        // Nobody is connected, end session after 1 minutes
         this.timers[`${session.code}-ending`] = setTimeout(() => {
           this.end(session);
-        }, 3 * 60 * 1000);
+        }, 60 * 1000);
       } else {
         clearInterval(this.timers[`${session.code}-ending`]);
       }
