@@ -101,7 +101,7 @@ export class Reveal extends Component<Props, State> {
 
     const list = Array.from(
       Util.weightedMap(this.state.stage == 'suspect' ? this.context.suspects : this.context.guesses).entries(),
-    );
+    ).map(([guess, weight]) => [`${guess} [ ${weight} ]`, weight]);
 
     const Wordcloud = (await import('wordcloud')).default;
 
