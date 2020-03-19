@@ -1,5 +1,6 @@
 import { Util } from './util';
 import { Stage, Client } from 'shared/interfaces';
+import { Announcer } from './announcer';
 
 export class Session {
   public code: string;
@@ -22,14 +23,16 @@ export class Session {
     this.code = code;
   }
 
-  newClient(name: string, participant = true) {
+  async newClient(name: string, participant = true) {
     let id = Util.encode((Date.now() + 1) % (1000 * 60 * 60));
     id = `${this.code}-${id}`;
+    const nameTTS = participant ? await Announcer.load(name) : undefined;
     const client: Client = {
       id,
       name,
       color: Util.getColor(this.clients.size),
       guess: undefined,
+      nameTTS,
       participant,
       connected: false,
       iterations: [],

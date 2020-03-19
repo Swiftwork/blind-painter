@@ -5,17 +5,66 @@ import { Client } from 'shared/interfaces';
 
 import s from './Players.module.css';
 
+/* Icons */
 import PaletteIcon from 'assets/icons/palette.svg';
 import HostIcon from 'assets/icons/host.svg';
 import ClearIcon from 'assets/icons/clear.svg';
 import PaletteOfflineIcon from 'assets/icons/palette-offline.svg';
 import CriticIcon from 'assets/icons/critic.svg';
 
+/* Sounds */
+import YourTurnSound from 'assets/sounds/your-turn.mp3';
+import LetsGoSound from 'assets/sounds/lets-go.mp3';
+import UpNextSound from 'assets/sounds/up-next.mp3';
+import ToTheStageSound from 'assets/sounds/to-the-stage.mp3';
+import PickUpYourBrushSound from 'assets/sounds/pick-up-your-brush.mp3';
+import ShowMeWhatYouGotSound from 'assets/sounds/show-me-what-you-got.mp3';
+
 interface Props {}
 
 export class Players extends Component<Props> {
   static contextType = SessionContext;
   declare context: React.ContextType<typeof SessionContext>;
+
+  private turnId: string | undefined;
+  private announcements: HTMLAudioElement[] = [];
+  private nameTTS: Map<string, HTMLAudioElement> = new Map();
+
+  componentDidMount() {
+    this.announcements = [
+      new Audio(YourTurnSound),
+      new Audio(LetsGoSound),
+      new Audio(UpNextSound),
+      new Audio(ToTheStageSound),
+      new Audio(PickUpYourBrushSound),
+      new Audio(ShowMeWhatYouGotSound),
+    ];
+    this.announcements.forEach(audio => audio.load());
+  }
+
+  componentDidUpdate() {
+    this.context.clients.forEach(({ id, nameTTS }) => {
+      if (!this.nameTTS.has(id)) {
+        const audio = new Audio(nameTTS);
+        audio.load();
+        this.nameTTS.set(id, audio);
+      }
+    });
+
+    if (this.turnId !== this.context.turnId) {
+      this.turnId = this.context.turnId;
+      this.newTurn();
+    }
+  }
+
+  newTurn() {
+    const tts = this.nameTTS.get(this.turnId || '');
+    if (tts && this.context.hostId == this.context.clientId) {
+      const announcement = Util.random(this.announcements);
+      announcement.play();
+      announcement.onended = () => tts.play();
+    }
+  }
 
   render() {
     const [painters, critics] = Util.partition(Array.from(this.context.clients.values()), client => client.participant);

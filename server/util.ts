@@ -1,3 +1,4 @@
+import { promises as fs } from 'fs';
 import Hashids from 'hashids';
 const hashids = new Hashids('', 5, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 const colors = [
@@ -45,5 +46,23 @@ export class Util {
 
   static getColor(i: number) {
     return colors[i];
+  }
+
+  static async isDirectory(directory: string) {
+    try {
+      const stat = await fs.stat(directory);
+      return stat.isDirectory();
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  static async isFile(file: string) {
+    try {
+      const stat = await fs.stat(file);
+      return stat.isFile();
+    } catch (_err) {
+      return false;
+    }
   }
 }

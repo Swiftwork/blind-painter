@@ -16,7 +16,7 @@ function errorMessage(res: NextApiResponse, code = 200, reason = 'ok') {
   res.status(code).end();
 }
 
-function put(req: NextApiRequest, res: NextApiResponse) {
+async function put(req: NextApiRequest, res: NextApiResponse) {
   const {
     body: { name, participant },
     query: { code: queryCode },
@@ -28,7 +28,7 @@ function put(req: NextApiRequest, res: NextApiResponse) {
   if (session.stage !== 'lobby') return errorMessage(res, 404, `Session ${code} has already started`);
   if (participant && session.getIds(true).length >= 10)
     return errorMessage(res, 403, `Session ${code} already has the maximum of 10 participants`);
-  const client = session.newClient(name, participant);
+  const client = await session.newClient(name, participant);
   res.send({ code, client });
 }
 

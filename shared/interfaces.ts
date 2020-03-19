@@ -8,6 +8,7 @@ export interface Client {
   name: string;
   color: string;
   guess: string | undefined;
+  nameTTS: string | undefined;
   connected: boolean;
   participant: boolean;
   iterations: Point[][][];

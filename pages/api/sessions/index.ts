@@ -16,29 +16,16 @@ function errorMessage(res: NextApiResponse, code = 200, reason = 'ok') {
   res.status(code).end();
 }
 
-function post(req: NextApiRequest, res: NextApiResponse) {
+async function post(req: NextApiRequest, res: NextApiResponse) {
   const {
     body: { name, participant },
   } = req;
   console.log(`Requesting a new session using name ${name} and participation ${participant}`);
   if (!name) return errorMessage(res, 400, `You must supply a name in request body`);
   const { code, session } = createSession();
-  const client = session.newClient(name, participant);
+  const client = await session.newClient(name, participant);
   res.send({ code, client });
 }
-
-/*
-function kick(req: NextApiRequest, res: NextApiResponse) {
-  console.log(`Requesting to remove user ${req.params.client} from session ${req.params.code}`);
-  const { code, session } = getSession(req.params.code, false);
-  if (!session) return errorMessage(res, 404, `Session ${code} does not exist`);
-  if (session.deleteClient(req.params.client)) {
-    res.send(`Removed user ${req.params.client} from session ${code}`);
-  } else {
-    return errorMessage(res, 404, `User ${req.params.client} does not exist`);
-  }
-}
-*/
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   switch (req.method) {

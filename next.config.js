@@ -1,3 +1,5 @@
+const path = require('path');
+
 module.exports = {
   webpack(config, { isServer }) {
     config.resolve.modules.unshift(config.context);

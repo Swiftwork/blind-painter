@@ -9,7 +9,7 @@ export class Util {
     return weightedMap;
   }
 
-  static random(array: any[]) {
+  static random<T>(array: T[]) {
     return array[Math.floor(Math.random() * array.length)];
   }
 

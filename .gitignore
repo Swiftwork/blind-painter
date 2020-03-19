@@ -6,6 +6,8 @@ resources
 .next
 dist
 .env
+credentials.json
+tmp
 
 # Logs
 *.log
