@@ -10,9 +10,58 @@ html {
 }
 
 body {
-  font-family: 'Permanent Marker', cursive;
+  font-size: 1.25em;
+  font-family: 'Patrick Hand SC', cursive;
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
   box-sizing: border-box;
+}
+
+input,
+button,
+select,
+textarea {
+  background: rgba(255, 255, 255, 0.9);
+  border: solid 5px rgba(0, 0, 0, 0.7);
+  border-radius: 150% 15px 150% 15px/15px 300% 15px 300%;
+  outline: none;
+}
+
+button,
+select,
+[type='button'],
+[type='submit'],
+[type='reset'] {
+  cursor: pointer;
+
+  &:hover {
+    animation: jiggle 0.3s ease-out;
+  }
+}
+
+@keyframes jiggle {
+  15%,
+  40%,
+  75%,
+  100% {
+    transform-origin: center center;
+  }
+
+  15% {
+    transform: scale(1.05, 1.02);
+  }
+
+  40% {
+    transform: scale(0.95, 0.95);
+  }
+
+  75% {
+    transform: scale(1.02, 1);
+  }
+
+  100% {
+    transform: scale(1, 1);
+  }
 }

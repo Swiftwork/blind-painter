@@ -54,7 +54,8 @@
     & .name {
       display: none;
       margin-left: 1em;
-      font-size: 1.25em;
+      font-size: 1.5em;
+      line-height: 1em;
 
       & .turnHelper {
         color: rgba(0, 0, 0, 0.6);

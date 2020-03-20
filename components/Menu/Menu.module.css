@@ -7,8 +7,10 @@
   width: 100%;
 
   & .title {
+    margin: 0;
+    margin-bottom: 2rem;
     width: 100%;
-    font-size: 3em;
+    font-size: 4em;
     text-align: center;
   }
 
@@ -40,9 +42,11 @@
     max-width: 8em;
     font-size: 1.5em;
     text-transform: uppercase;
-    letter-spacing: 4px;
     text-align: center;
-    border: 2px solid;
+
+    &.code {
+      letter-spacing: 4px;
+    }
   }
 
   & .group {

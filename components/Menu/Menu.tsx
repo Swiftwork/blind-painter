@@ -85,7 +85,7 @@ export class Menu extends Component<Props, State> {
         </button>
         <menu className={s.group}>
           <input
-            className={s.input}
+            className={`${s.input} ${s.code}`}
             placeholder="code"
             autoComplete="off"
             autoCorrect="off"

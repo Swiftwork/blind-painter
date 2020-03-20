@@ -1,8 +1,13 @@
 .splash {
+  display: none;
   position: absolute;
   bottom: 0;
   left: 0;
   min-width: 42rem;
   max-height: 75%;
   pointer-events: none;
+
+  @media (--b_md) {
+    display: block;
+  }
 }

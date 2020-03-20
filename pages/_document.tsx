@@ -11,9 +11,8 @@ class BlindDocument extends Document {
     return (
       <Html>
         <Head>
-          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
           <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" />
-          <link href="https://fonts.googleapis.com/css?family=Permanent+Marker&display=swap" rel="stylesheet" />
+          <link href="https://fonts.googleapis.com/css?family=Patrick+Hand+SC" rel="stylesheet" />
         </Head>
         <body>
           <Main />
