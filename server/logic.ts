@@ -72,7 +72,7 @@ export class Logic {
         this.socket.broadcastTo(session.getIds(), { type: 'S2C_SESSION', payload: { session, client } });
       else this.socket.broadcastTo(socketSession, { type: 'S2C_SESSION', payload: { session, client } });
     } else {
-      this.socket.getConnection(socketSession).close('404', 'Session does not exist');
+      this.socket.getConnection(socketSession).close('4000', 'Session does not exist');
     }
   };
 
@@ -302,7 +302,8 @@ export class Logic {
 
   end(session: Session) {
     clearInterval(this.timers[session.code]);
-    this.socket.close(session.getIds(), 1000, 'Session has ended');
+    this.socket.broadcastTo(session.getIds(), { type: 'S2C_END' });
+    this.socket.close(session.getIds(), 4000, 'Session has ended');
     sessions.delete(session.code);
   }
 

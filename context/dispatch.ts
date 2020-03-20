@@ -16,7 +16,12 @@ const sendPoints = (points: Point[]) => {
 export const attachSocketDispatch = (dispatch: Dispatch<SessionAction>) => (action: SessionAction) => {
   switch (action.type) {
     case 'S2C_SESSION': {
-      if (!socket) socket = new Socket(dispatch);
+      if (!socket) {
+        socket = new Socket(dispatch);
+        window.addEventListener('beforeunload', () => {
+          socket && socket.close(1000, 'Manually closed');
+        });
+      }
       if (!socket.connected) socket.open('/socket', action.payload.client.id);
       break;
     }
@@ -70,7 +75,7 @@ export const attachSocketDispatch = (dispatch: Dispatch<SessionAction>) => (acti
     case 'C2S_END': {
       if (socket) {
         socket.send(action);
-        socket.close(1000, 'Ending session');
+        socket.close(4000, 'Ending session');
       }
       break;
     }

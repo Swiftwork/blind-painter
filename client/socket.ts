@@ -44,8 +44,8 @@ export class Socket {
     }
   };
 
-  private onClose = (event: CloseEvent) => {
-    console.log(`[SOCKET | ${event.code}]: ${event.reason}`);
+  private onClose = ({ code, reason }: CloseEvent) => {
+    console.log(`[SOCKET | ${code}]: ${reason}`);
     if (this.socket) {
       this.socket.removeEventListener('open', this.onOpen);
       this.socket.removeEventListener('message', this.onMessage);
@@ -53,6 +53,6 @@ export class Socket {
       this.socket = undefined;
     }
     this.dispatch({ type: 'S2C_SOCKET', payload: { status: 'closed' } });
-    this.dispatch({ type: 'S2C_END' });
+    if (code === 4000) this.dispatch({ type: 'S2C_END' });
   };
 }
