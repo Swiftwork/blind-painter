@@ -62,7 +62,7 @@ export class Menu extends Component<Props, State> {
     }
     Server.GetCategories()
       .then(categories => (this.categories = categories))
-      .catch(err => alert(err));
+      .catch(err => console.error(err));
   }
 
   componentDidUpdate() {

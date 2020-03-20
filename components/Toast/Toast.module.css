@@ -1,0 +1,26 @@
+.toast {
+  position: relative;
+  display: block;
+  text-align: center;
+  margin: 1rem auto;
+  padding: 0.5rem 2rem;
+  max-width: 40rem;
+  color: white;
+  font-size: 1.5em;
+  background: rgba(0, 0, 0, 0.6);
+  border: solid 5px transparent;
+  border-radius: 150% 15px 150% 15px/15px 300% 15px 300%;
+  pointer-events: none;
+
+  & .clear {
+    position: absolute;
+    right: 0.5rem;
+    width: 1em;
+    pointer-events: all;
+    cursor: pointer;
+
+    & path {
+      stroke: white;
+    }
+  }
+}

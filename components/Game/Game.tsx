@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 
 import { SessionContext, storeSession } from 'context/store';
-
 import { Server, SessionClient } from 'client/server';
+import { Stage } from 'shared/interfaces';
 
 import { Canvas } from 'components/Canvas/Canvas';
 import { Actions } from 'components/Actions/Actions';
@@ -14,14 +14,16 @@ import { Debug } from 'components/Debug/Debug';
 import { Subject } from 'components/Subject/Subject';
 import { Reveal } from 'components/Reveal/Reveal';
 import { Timer } from 'components/Timer/Timer';
+import { Toast } from 'components/Toast/Toast';
 
 import ThemeMusic from 'assets/sounds/theme.mp3';
-import { Stage } from 'shared/interfaces';
+import s from './Game.module.css';
 
 interface Props {}
 
 interface State {
   debug: boolean;
+  errors: string[];
 }
 
 export class Game extends Component<Props, State> {
@@ -35,6 +37,7 @@ export class Game extends Component<Props, State> {
 
     this.state = {
       debug: false,
+      errors: [],
     };
   }
 
@@ -76,13 +79,14 @@ export class Game extends Component<Props, State> {
       Server.NewSession(name, participant)
         .then(this.onSession)
         .catch(error => {
-          alert(error);
+          this.setState({ errors: [...this.state.errors, error.message] });
         });
     } else {
       Server.JoinSession(code, name, participant)
         .then(this.onSession)
         .catch(error => {
-          alert(error);
+          console.dir(error);
+          this.setState({ errors: [...this.state.errors, error.message] });
         });
     }
   };
@@ -98,6 +102,10 @@ export class Game extends Component<Props, State> {
 
   onQuit = () => {
     this.context.dispatch({ type: 'C2S_END' });
+  };
+
+  onClearError = (index: number) => {
+    this.setState({ errors: this.state.errors.filter((_, i) => index !== i) });
   };
 
   private allowedStage(...stages: (Stage | 'all')[]) {
@@ -118,6 +126,13 @@ export class Game extends Component<Props, State> {
         {this.allowedStage('started') && <Subject />}
         {this.allowedStage('guessing') && <Guess />}
         {this.allowedStage('reveal') && <Reveal />}
+        <div className={s.toasts}>
+          {this.state.errors.map((error, i) => (
+            <Toast key={error} onClear={() => this.onClearError(i)}>
+              {error}
+            </Toast>
+          ))}
+        </div>
         {this.state.debug && <Debug />}
       </>
     );
