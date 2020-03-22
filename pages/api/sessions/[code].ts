@@ -27,7 +27,8 @@ async function put(req: NextApiRequest, res: NextApiResponse) {
   if (!session) return errorMessage(res, 404, `Session ${code} does not exist`);
   if (session.stage !== 'lobby') return errorMessage(res, 404, `Session ${code} has already started`);
   const client = await session.newClient(name, participant);
-  if (!client) return errorMessage(res, 403, `Session ${code} already has the maximum of 10 participants`);
+  if (!client)
+    return errorMessage(res, 403, `Session ${code} already has the maximum of ${session.players} participants`);
   res.send({ code, client });
 }
 
