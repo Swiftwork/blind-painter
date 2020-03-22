@@ -45,7 +45,10 @@ export class Timer extends Component<Props, State> {
   playBeep = () => {
     this.beep.pause();
     this.beep.currentTime = 0;
-    if (this.context.hostId == this.context.clientId) this.beep.play();
+    if (this.context.hostId == this.context.clientId) {
+      this.beep.volume = this.context.soundVolume / 100;
+      this.beep.play();
+    }
   };
 
   newTurn() {

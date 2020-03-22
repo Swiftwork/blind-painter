@@ -10,6 +10,7 @@ import s from './Menu.module.css';
 interface Props {
   onConnect(participant: boolean, name: string, code?: string): void;
   onStart(categoryId: string): void;
+  onSettings(): void;
   onQuit(): void;
 }
 
@@ -172,6 +173,9 @@ export class Menu extends Component<Props, State> {
             disabled={!this.state.categoryId}
             onClick={() => this.props.onStart(this.state.categoryId)}>
             Start the game
+          </button>
+          <button className={s.button} type="button" onClick={this.props.onSettings}>
+            Settings
           </button>
           <button className={s.button} type="button" onClick={this.props.onQuit}>
             Quit

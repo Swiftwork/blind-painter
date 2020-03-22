@@ -16,12 +16,10 @@ export interface Client {
 
 export type Stage = 'none' | 'lobby' | 'started' | 'guessing' | 'reveal';
 
-export interface Session {
+export interface SharedSession {
   code: string;
   stage: Stage;
-  clientId: string;
-  connected: boolean;
-  socket: boolean;
+  players: number;
   rounds: number;
   currentRound: number;
   elapsed: number;
@@ -33,11 +31,25 @@ export interface Session {
   blindId: string | undefined;
   category: string | undefined;
   subject: string | undefined;
-  suspects: string[];
-  guesses: string[];
-  blind: boolean;
   clients: Map<string, Client>;
 }
+
+export interface ServerSession extends SharedSession {
+  suspects: string[];
+  guesses: string[];
+}
+
+export interface ClientSession extends SharedSession {
+  clientId: string;
+  connected: boolean;
+  socket: boolean;
+  blind: boolean;
+  musicVolume: number;
+  soundVolume: number;
+}
+
+// TODO: refactor
+export type Session = ServerSession & ClientSession;
 
 export interface Category {
   id: string;

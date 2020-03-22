@@ -30,7 +30,7 @@ export class Logic {
     socket.on('CONNECTION', this.onConnection);
     socket.on('ACTION', (action: SocketAction) => {
       switch (action.type) {
-        case 'C2S_SETTINGS':
+        case 'C2S_SESSION':
           return () => {};
         case 'C2S_START':
           return this.onStart(action.payload);

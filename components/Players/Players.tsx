@@ -61,8 +61,12 @@ export class Players extends Component<Props> {
     const tts = this.nameTTS.get(this.turnId || '');
     if (tts && this.context.hostId == this.context.clientId) {
       const announcement = Util.random(this.announcements);
+      announcement.volume = this.context.soundVolume / 100;
       announcement.play();
-      announcement.onended = () => tts.play();
+      announcement.onended = () => {
+        tts.volume = this.context.soundVolume / 100;
+        tts.play();
+      };
     }
   }
 

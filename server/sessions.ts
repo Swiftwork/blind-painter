@@ -5,6 +5,7 @@ import { Announcer } from './announcer';
 export class Session {
   public code: string;
   public stage: Stage = 'lobby';
+  public players = 7;
   public rounds = 2;
   public currentRound = 0;
   public elapsed = 0;
@@ -24,6 +25,7 @@ export class Session {
   }
 
   async newClient(name: string, participant = true) {
+    if (participant && this.getIds(true).length >= this.players) return null;
     let id = Util.encode((Date.now() + 1) % (1000 * 60 * 60));
     id = `${this.code}-${id}`;
     const nameTTS = participant ? await Announcer.load(name) : undefined;
@@ -101,6 +103,7 @@ export class Session {
     return {
       code: this.code,
       stage: this.stage,
+      players: this.players,
       rounds: this.rounds,
       currentRound: this.currentRound,
       elapsed: this.elapsed,

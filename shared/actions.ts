@@ -2,6 +2,8 @@ import { Point, Client, Session } from './interfaces';
 
 /* CLIENT TO SERVER ACTIONS */
 
+export type C2SSessionPayload = { players?: number; rounds?: number; turnDuration?: number };
+export type C2SSettingsPayload = { musicVolume?: number; soundVolume?: number };
 export type C2SStartPayload = { categoryId: string };
 export type C2SKickPayload = { clientId: string };
 export type C2SDrawStartPayload = { clientId?: string; points: Point | Point[] };
@@ -10,7 +12,8 @@ export type C2SUndoPayload = { clientId?: string; count?: number };
 export type C2SGuessPayload = { guess: string };
 
 export type C2SAction =
-  | { type: 'C2S_SETTINGS' }
+  | { type: 'C2S_SESSION'; payload: C2SSessionPayload }
+  | { type: 'C2S_SETTINGS'; payload: C2SSettingsPayload }
   | { type: 'C2S_START'; payload: C2SStartPayload }
   | { type: 'C2S_KICK'; payload: C2SKickPayload }
   | { type: 'C2S_TURN' }

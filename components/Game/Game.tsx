@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, createRef } from 'react';
 
 import { SessionContext, storeSession } from 'context/store';
 import { Server, SessionClient } from 'client/server';
@@ -15,6 +15,7 @@ import { Subject } from 'components/Subject/Subject';
 import { Reveal } from 'components/Reveal/Reveal';
 import { Timer } from 'components/Timer/Timer';
 import { Toast } from 'components/Toast/Toast';
+import { Settings, SettingsState } from 'components/Settings/Settings';
 
 import ThemeMusic from 'assets/sounds/theme.mp3';
 import s from './Game.module.css';
@@ -31,6 +32,7 @@ export class Game extends Component<Props, State> {
   declare context: React.ContextType<typeof SessionContext>;
 
   private music: HTMLAudioElement | undefined;
+  private settingsRef = createRef<Settings>();
 
   constructor(props: Props) {
     super(props);
@@ -46,7 +48,7 @@ export class Game extends Component<Props, State> {
 
     this.music = new Audio(ThemeMusic);
     this.music.load();
-    this.music.volume = 0.5;
+    this.music.volume = this.context.musicVolume / 100;
     this.music.loop = true;
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -69,7 +71,7 @@ export class Game extends Component<Props, State> {
 
   componentDidUpdate() {
     if (this.context.stage === 'lobby' && this.context.hostId === this.context.clientId) this.playTheme();
-
+    if (this.music) this.music.volume = this.context.musicVolume / 100;
     // TODO: refactor
     storeSession(this.context);
   }
@@ -100,6 +102,16 @@ export class Game extends Component<Props, State> {
     this.context.dispatch({ type: 'C2S_START', payload: { categoryId } });
   };
 
+  onSettingsToggle = () => {
+    this.settingsRef.current && this.settingsRef.current.show();
+  };
+
+  onSettings = (state: SettingsState) => {
+    const { musicVolume, soundVolume, players, rounds, turnDuration } = state;
+    this.context.dispatch({ type: 'C2S_SETTINGS', payload: { musicVolume, soundVolume } });
+    this.context.dispatch({ type: 'C2S_SESSION', payload: { players, rounds, turnDuration } });
+  };
+
   onQuit = () => {
     this.context.dispatch({ type: 'C2S_END' });
   };
@@ -119,13 +131,21 @@ export class Game extends Component<Props, State> {
         {this.allowedStage('none', 'lobby') && <Splash />}
         {this.allowedStage('lobby', 'started', 'guessing', 'reveal') && <Players />}
         {this.allowedStage('none', 'lobby') && (
-          <Menu onConnect={this.onConnect} onStart={this.onStart} onQuit={this.onQuit} />
+          <Menu
+            onConnect={this.onConnect}
+            onStart={this.onStart}
+            onSettings={this.onSettingsToggle}
+            onQuit={this.onQuit}
+          />
         )}
         {this.allowedStage('started') && <Actions />}
         {this.allowedStage('started', 'guessing') && <Timer />}
         {this.allowedStage('started') && <Subject />}
         {this.allowedStage('guessing') && <Guess />}
         {this.allowedStage('reveal') && <Reveal />}
+        {this.allowedStage('lobby', 'started', 'guessing', 'reveal') && (
+          <Settings ref={this.settingsRef} onChange={this.onSettings} />
+        )}
         <div className={s.toasts}>
           {this.state.errors.map((error, i) => (
             <Toast key={error} onClear={() => this.onClearError(i)}>
