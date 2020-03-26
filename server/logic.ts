@@ -10,6 +10,7 @@ import {
   C2SUndoPayload,
   C2SGuessPayload,
   SocketAction,
+  C2SSessionPayload,
 } from 'shared/actions';
 import { Socket } from './socket';
 
@@ -30,8 +31,8 @@ export class Logic {
     socket.on('CONNECTION', this.onConnection);
     socket.on('ACTION', (action: SocketAction) => {
       switch (action.type) {
-        case 'C2S_SETTINGS':
-          return () => {};
+        case 'C2S_SESSION':
+          return this.onSession(action.payload);
         case 'C2S_START':
           return this.onStart(action.payload);
         case 'C2S_DRAW_START':
@@ -64,15 +65,20 @@ export class Logic {
     return {};
   }
 
-  onSession = ({ socketSession }: SocketPayload) => {
+  onSession = ({ socketSession, players, rounds, turnDuration }: C2SSessionPayload & SocketPayload) => {
     console.log('logic onSession', socketSession);
     const { session, client } = this.getSessionClient(socketSession);
-    if (session && client) {
-      if (session.stage == 'lobby')
-        this.socket.broadcastTo(session.getIds(), { type: 'S2C_SESSION', payload: { session, client } });
-      else this.socket.broadcastTo(socketSession, { type: 'S2C_SESSION', payload: { session, client } });
+    if (!session || !client) return this.socket.getConnection(socketSession).close('4000', 'Session does not exist');
+    if (session.hostId === socketSession) {
+      if (players) session.players = players;
+      if (rounds) session.rounds = rounds;
+      if (turnDuration) session.turnDuration = turnDuration * 1000;
+    }
+
+    if (session.stage == 'lobby') {
+      this.socket.broadcastTo(session.getIds(), { type: 'S2C_SESSION', payload: { session, client } });
     } else {
-      this.socket.getConnection(socketSession).close('4000', 'Session does not exist');
+      this.socket.broadcastTo(socketSession, { type: 'S2C_SESSION', payload: { session, client } });
     }
   };
 

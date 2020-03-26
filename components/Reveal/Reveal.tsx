@@ -61,7 +61,11 @@ export class Reveal extends Component<Props, State> {
   }
 
   private reveal() {
-    if (this.context.hostId == this.context.clientId) Util.random(this.revealSounds).play();
+    if (this.context.hostId == this.context.clientId) {
+      const reveal = Util.random(this.revealSounds);
+      reveal.volume = this.context.soundVolume / 100;
+      reveal.play();
+    }
 
     this.setState(
       {

@@ -34,6 +34,14 @@ export function reducer(state: Session, action: SessionAction): Session {
       return { ...state };
     }
 
+    case 'C2S_SETTINGS': {
+      return {
+        ...state,
+        musicVolume: action.payload.musicVolume || 0,
+        soundVolume: action.payload.soundVolume || 0,
+      };
+    }
+
     case 'S2C_START': {
       return {
         ...state,

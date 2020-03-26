@@ -1,0 +1,89 @@
+@define-mixin track {
+  margin-top: -3px;
+  height: 6px;
+  color: transparent;
+  cursor: pointer;
+  border: none;
+  border-bottom: 6px dotted rgba(0, 0, 0, 0.3);
+}
+
+@define-mixin thumb {
+  position: relative;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  z-index: 1;
+  cursor: pointer;
+  border-radius: 53% 65% 66% 48%;
+  border: 3px solid rgba(0, 0, 0, 0.9);
+  background: white;
+  box-sizing: border-box;
+  transition: all var(--t_animation);
+}
+
+.rangeSlider {
+  appearance: none;
+  width: 100%;
+  padding: 0;
+  height: 48px;
+  outline: none;
+  background: transparent;
+
+  /* TRACKS */
+
+  &::-webkit-slider-runnable-track {
+    @mixin track;
+  }
+
+  &::-moz-range-track {
+    @mixin track;
+  }
+
+  &::-ms-track {
+    @mixin track;
+  }
+
+  /* PROGRESS */
+
+  &::-moz-range-progress {
+    display: none;
+  }
+
+  &::-ms-fill-lower {
+    display: none;
+  }
+
+  /* THUMB */
+
+  &::-webkit-slider-thumb {
+    @mixin thumb;
+
+    margin-top: -10px;
+  }
+
+  &::-moz-range-thumb {
+    @mixin thumb;
+  }
+
+  &::-ms-thumb {
+    @mixin thumb;
+
+    margin-top: 0;
+  }
+
+  &:active {
+    /* THUMB */
+
+    &::-webkit-slider-thumb {
+      transform: scale(1.25);
+    }
+
+    &::-moz-range-thumb {
+      transform: scale(1.25);
+    }
+
+    &::-ms-thumb {
+      transform: scale(1.25);
+    }
+  }
+}

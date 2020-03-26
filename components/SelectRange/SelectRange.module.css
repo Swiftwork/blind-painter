@@ -1,0 +1,24 @@
+.selectRange {
+  display: flex;
+  justify-content: space-around;
+
+  & .value {
+    width: 1.5em;
+    height: 1.5em;
+    line-height: 1.1em;
+    text-align: center;
+    outline: none;
+    cursor: pointer;
+    border: 5px dotted transparent;
+    transition: all 100ms;
+    border-radius: 93% 54% 56% 76%;
+
+    &:hover {
+      transform: scale(1.25);
+    }
+
+    &[aria-selected='true'] {
+      border-color: rgba(0, 0, 0, 0.7);
+    }
+  }
+}

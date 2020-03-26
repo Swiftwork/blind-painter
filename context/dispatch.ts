@@ -26,6 +26,15 @@ export const attachSocketDispatch = (dispatch: Dispatch<SessionAction>) => (acti
       break;
     }
 
+    case 'C2S_SETTINGS': {
+      break;
+    }
+
+    case 'C2S_SESSION': {
+      socket && socket.send(action);
+      break;
+    }
+
     case 'C2S_START': {
       socket && socket.send(action);
       break;

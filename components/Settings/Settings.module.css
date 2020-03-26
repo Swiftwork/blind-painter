@@ -1,0 +1,46 @@
+.settings {
+  font-size: 1.5em;
+  background: #fff;
+  border: solid 5px rgba(0, 0, 0, 1);
+  border-radius: 150% 15px 150% 15px/15px 300% 15px 300%;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 32rem;
+
+  &::backdrop {
+    transition: background-color 400ms;
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+
+  &:not([open]) {
+    display: none;
+  }
+
+  & .close {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    width: 2rem;
+    height: 2rem;
+    cursor: pointer;
+  }
+
+  & .title {
+    margin-top: 0;
+    margin-bottom: 2rem;
+  }
+
+  & .label {
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  & .input {
+    display: block;
+    width: 100%;
+  }
+
+  & .range {
+    margin-bottom: 2rem;
+  }
+}
