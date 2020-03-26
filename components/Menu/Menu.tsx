@@ -20,6 +20,7 @@ interface State {
   name: string;
   code: string;
   categoryId: string;
+  categories: (Category | Group)[];
 }
 
 export class Menu extends Component<Props, State> {
@@ -29,8 +30,6 @@ export class Menu extends Component<Props, State> {
   private qrCanvas = React.createRef<HTMLCanvasElement>();
   private qrRendered = '';
 
-  private categories: (Category | Group)[] = [];
-
   constructor(props: Props) {
     super(props);
 
@@ -39,6 +38,7 @@ export class Menu extends Component<Props, State> {
       host: false,
       name: '',
       code: '',
+      categories: [],
       categoryId: '',
     };
   }
@@ -62,7 +62,7 @@ export class Menu extends Component<Props, State> {
       });
     }
     Server.GetCategories()
-      .then(categories => (this.categories = categories))
+      .then(categories => this.setState({ categories }))
       .catch(err => console.error(err));
   }
 
@@ -164,7 +164,7 @@ export class Menu extends Component<Props, State> {
             <option value="" disabled hidden>
               Choose a category
             </option>
-            {Menu.option(this.categories)}
+            {Menu.option(this.state.categories)}
           </select>
           <div className={s.break} />
           <button

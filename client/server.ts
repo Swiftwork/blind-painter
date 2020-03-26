@@ -43,7 +43,7 @@ export class Server {
   }
 
   static GetCategories(): Promise<(Category | Group)[]> {
-    return fetch(`/api/words`, {})
+    return fetch(`/api/words`)
       .then(res => {
         if (!res.ok) throw new Error(res.statusText);
         return res;
