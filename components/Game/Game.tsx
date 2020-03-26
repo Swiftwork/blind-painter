@@ -1,4 +1,5 @@
 import React, { Component, createRef } from 'react';
+import NoSleep from 'nosleep.js';
 
 import { SessionContext, storeSession } from 'context/store';
 import { Server, SessionClient } from 'client/server';
@@ -31,6 +32,7 @@ export class Game extends Component<Props, State> {
   static contextType = SessionContext;
   declare context: React.ContextType<typeof SessionContext>;
 
+  private noSleep: NoSleep | undefined;
   private music: HTMLAudioElement | undefined;
   private settingsRef = createRef<Settings>();
 
@@ -44,7 +46,9 @@ export class Game extends Component<Props, State> {
   }
 
   componentDidMount() {
-    window.addEventListener('click', this.playTheme);
+    this.noSleep = new NoSleep();
+    window.addEventListener('click', this.wakeLock, false);
+    window.addEventListener('click', this.playTheme, false);
 
     this.music = new Audio(ThemeMusic);
     this.music.load();
@@ -63,7 +67,13 @@ export class Game extends Component<Props, State> {
     }
   }
 
+  wakeLock = () => {
+    window.removeEventListener('click', this.wakeLock, false);
+    if (this.noSleep) this.noSleep.enable();
+  };
+
   playTheme = () => {
+    window.removeEventListener('click', this.playTheme, false);
     if (this.context.hostId == this.context.clientId && this.music) {
       this.music.play().catch(() => {});
     }
