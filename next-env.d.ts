@@ -1,4 +1,5 @@
 /// <reference types="express" />
+/// <reference types="memcached" />
 /// <reference types="next" />
 /// <reference types="next/types/global" />
 /// <reference types="node" />

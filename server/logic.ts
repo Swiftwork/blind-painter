@@ -1,6 +1,7 @@
+import Memcached from 'memcached';
 import { Util } from './util';
 import { words } from './words';
-import { Session, sessions } from './sessions';
+import { Session } from './sessions';
 import {
   SocketPayload,
   C2SStartPayload,
@@ -13,6 +14,8 @@ import {
   C2SSessionPayload,
 } from 'shared/actions';
 import { Socket } from './socket';
+
+const memcached = new Memcached(`${process.env.MEMCACHED_HOST}:${process.env.MEMCACHED_PORT}`);
 
 export class Logic {
   private socket: Socket;

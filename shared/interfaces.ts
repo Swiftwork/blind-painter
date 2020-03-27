@@ -16,7 +16,7 @@ export interface Client {
 
 export type Stage = 'none' | 'lobby' | 'started' | 'guessing' | 'reveal';
 
-export interface SharedSession {
+export interface BaseSession {
   code: string;
   stage: Stage;
   players: number;
@@ -34,12 +34,12 @@ export interface SharedSession {
   clients: Map<string, Client>;
 }
 
-export interface ServerSession extends SharedSession {
+export interface ServerSession extends BaseSession {
   suspects: string[];
   guesses: string[];
 }
 
-export interface ClientSession extends SharedSession {
+export interface ClientSession extends BaseSession {
   clientId: string;
   connected: boolean;
   socket: boolean;

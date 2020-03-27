@@ -120,13 +120,3 @@ export class Session {
     };
   }
 }
-
-const SESSIONS_KEY = Symbol.for('Blind.Painter.sessions');
-
-if (Object.getOwnPropertySymbols(global).indexOf(SESSIONS_KEY) === -1) {
-  (global as any)[SESSIONS_KEY] = new Map<string, Session>();
-}
-
-export const sessions: Map<string, Session> = (global as any)[SESSIONS_KEY];
-
-Object.freeze(sessions);
