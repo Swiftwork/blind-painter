@@ -1,8 +1,3 @@
-export interface Point {
-  x: number;
-  y: number;
-}
-
 export interface Client {
   id: string;
   name: string;
@@ -12,7 +7,7 @@ export interface Client {
   connected: boolean;
   reaction: string;
   participant: boolean;
-  iterations: Point[][][];
+  iterations: number[][][];
 }
 
 export enum Reaction {
