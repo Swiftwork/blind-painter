@@ -23,7 +23,7 @@ nextApp.prepare().then(() => {
     nextHandler(req, res, parsedUrl);
   });
 
-  server.listen(3005, '0.0.0.0', () => {
+  server.listen(51337, '0.0.0.0', () => {
     console.log('> Ready on http://localhost:3005/');
   });
 });

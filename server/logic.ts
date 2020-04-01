@@ -12,10 +12,16 @@ import {
   C2SGuessPayload,
   SocketAction,
   C2SSessionPayload,
+  C2SReactionPayload,
 } from 'shared/actions';
 import { Socket } from './socket';
 
 const memcached = new Memcached(`${process.env.MEMCACHED_HOST}:${process.env.MEMCACHED_PORT}`);
+const reactions = {
+  0: ['Wow!', 'Fantabulous!', 'Excellent!', 'Obvious!', 'Impressive!'],
+  1: ['Uhm...', 'Not sure...', 'Ok...', 'Confusing...', '???'],
+  2: ['Horrible!', 'Weaksauce!', 'Nope!', 'Upsetting!', 'Blind!'],
+};
 
 export class Logic {
   private socket: Socket;
@@ -46,6 +52,8 @@ export class Logic {
           return this.onKick(action.payload);
         case 'C2S_UNDO':
           return this.onUndo(action.payload);
+        case 'C2S_REACTION':
+          return this.onReaction(action.payload);
         case 'C2S_TURN':
           return this.onTurn(action.payload);
         case 'C2S_GUESS':
@@ -213,6 +221,21 @@ export class Logic {
 
     const ids = session.getIds();
     this.socket.broadcastTo(ids, { type: 'S2C_UNDO', payload: { clientId: socketSession, count } }, [socketSession]);
+  };
+
+  onReaction = ({ socketSession, reaction }: C2SReactionPayload & SocketPayload) => {
+    const { session, client } = this.getSessionClient(socketSession);
+    if (!session || !client || session.turnId === socketSession) return;
+
+    const oldReaction = client.reaction;
+    do client.reaction = Util.random(reactions[reaction]);
+    while (client.reaction === oldReaction);
+
+    const ids = session.getIds();
+    this.socket.broadcastTo(ids, {
+      type: 'S2C_REACTION',
+      payload: { clientId: socketSession, reaction: client.reaction },
+    });
   };
 
   onTurn = ({ socketSession }: SocketPayload) => {

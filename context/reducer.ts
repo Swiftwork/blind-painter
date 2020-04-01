@@ -81,8 +81,7 @@ export function reducer(state: Session, action: SessionAction): Session {
       if (!iteration) return state;
 
       // Create a new segment
-      if (Array.isArray(action.payload.points)) iteration.push(action.payload.points);
-      else iteration.push([action.payload.points]);
+      iteration.push(action.payload.points);
 
       return { ...state };
     }
@@ -94,8 +93,7 @@ export function reducer(state: Session, action: SessionAction): Session {
       const segment = iteration[iteration.length - 1];
 
       // Append to last segment
-      if (Array.isArray(action.payload.points)) segment.push(...action.payload.points);
-      else segment.push(action.payload.points);
+      segment.push(...action.payload.points);
 
       return { ...state };
     }
@@ -109,6 +107,12 @@ export function reducer(state: Session, action: SessionAction): Session {
       const count = action.payload.count || Infinity;
       iteration.splice(-1 * count, count);
 
+      return { ...state };
+    }
+
+    case 'S2C_REACTION': {
+      const client = state.clients.get(action.payload.clientId);
+      if (client) client.reaction = action.payload.reaction;
       return { ...state };
     }
 

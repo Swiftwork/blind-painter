@@ -1,7 +1,6 @@
 import React, { Component, createRef, MouseEvent as RMouseEvent, TouchEvent as RTouchEvent } from 'react';
 
 import { SessionContext } from 'context/store';
-import { Point } from 'shared/interfaces';
 
 import s from './Canvas.module.css';
 
@@ -140,39 +139,43 @@ export class Canvas extends Component<Props, State> {
     this.drawFrame = window.requestAnimationFrame(this.draw);
   };
 
-  drawLine(points: Point[], color: string) {
+  drawLine(points: number[], color: string) {
     if (!this.ctx) return;
 
     this.ctx.strokeStyle = color;
     this.ctx.shadowColor = color;
-    let p1 = points[0];
-    let p2 = points[1];
+    let x1 = points[0];
+    let y1 = points[1];
+    let x2 = points[2];
+    let y2 = points[3];
 
     this.ctx.beginPath();
-    this.ctx.moveTo(p1.x * this.state.scale, p1.y * this.state.scale);
+    this.ctx.moveTo(x1 * this.state.scale, x1 * this.state.scale);
 
-    for (let i = 1, len = points.length; i < len; i++) {
+    for (let i = 2, len = points.length; i < len; i += 2) {
       // we pick the point between pi+1 & pi+2 as the
       // end point and p1 as our control point
-      const midPoint = Canvas.midPointBtw(p1, p2);
+      const midPoint = Canvas.midPointBtw(x1, y1, x2, y2);
       this.ctx.quadraticCurveTo(
-        p1.x * this.state.scale,
-        p1.y * this.state.scale,
+        x1 * this.state.scale,
+        y1 * this.state.scale,
         midPoint.x * this.state.scale,
         midPoint.y * this.state.scale,
       );
-      p1 = points[i];
-      p2 = points[i + 1];
+      x1 = points[i + 0];
+      y1 = points[i + 1];
+      x2 = points[i + 2];
+      y2 = points[i + 3];
     }
     // Draw last line as a straight line while
     // we wait for the next point to be able to calculate
     // the bezier control point
-    this.ctx.lineTo(p1.x * this.state.scale, p1.y * this.state.scale);
+    this.ctx.lineTo(x1 * this.state.scale, y1 * this.state.scale);
     this.ctx.stroke();
     this.ctx.strokeStyle = '#000';
   }
 
-  static GetCoords(event: RTouchEvent | RMouseEvent, scale: number) {
+  static GetCoords(event: RTouchEvent | RMouseEvent, scale: number): [number, number] {
     const offset = event.currentTarget.getBoundingClientRect();
     let x = 0;
     let y = 0;
@@ -183,17 +186,19 @@ export class Canvas extends Component<Props, State> {
       x = (event.nativeEvent.clientX - offset.x) / scale;
       y = (event.nativeEvent.clientY - offset.y) / scale;
     }
-    return { x, y };
+    x = Math.round((x + Number.EPSILON) * 100) / 100;
+    y = Math.round((y + Number.EPSILON) * 100) / 100;
+    return [x, y];
   }
 
   static IsTouch(event: RTouchEvent | RMouseEvent): event is RTouchEvent {
     return event.nativeEvent instanceof TouchEvent;
   }
 
-  static midPointBtw(p1: Point, p2: Point) {
+  static midPointBtw(x1: number, y1: number, x2: number, y2: number) {
     return {
-      x: p1.x + (p2.x - p1.x) / 2,
-      y: p1.y + (p2.y - p1.y) / 2,
+      x: x1 + (x2 - x1) / 2,
+      y: y1 + (y2 - y1) / 2,
     };
   }
 }

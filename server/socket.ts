@@ -1,4 +1,5 @@
 import { Server } from 'http';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
 
 import sockjs, { Server as SocketServer, Connection } from 'sockjs';
 
@@ -6,8 +7,13 @@ import { EventEmitter } from './emitter';
 import { S2CAction, C2SAction, SocketPayload } from 'shared/actions';
 
 export class Socket extends EventEmitter<'SESSION' | 'CONNECTION' | 'ACTION'> {
+  static RateLimit = 30;
+
   private socket: SocketServer | undefined;
   private connections: { [socketSession: string]: Connection };
+  private rateLimiter = new RateLimiterMemory({
+    points: Socket.RateLimit,
+  });
 
   constructor(server: Server) {
     super();
@@ -28,9 +34,15 @@ export class Socket extends EventEmitter<'SESSION' | 'CONNECTION' | 'ACTION'> {
         delete this.connections[socketSession];
       });
 
-      connection.on('data', event => {
-        const action: C2SAction & { payload: SocketPayload } = JSON.parse(event);
-        this.emit('ACTION', { ...action, payload: { socketSession, ...action.payload } });
+      connection.on('data', async event => {
+        try {
+          await this.rateLimiter.consume(socketSession);
+          const action: C2SAction & { payload: SocketPayload } = JSON.parse(event);
+          this.emit('ACTION', { ...action, payload: { socketSession, ...action.payload } });
+        } catch (err) {
+          console.warn(`Socket session ${socketSession} exceeded rate limit of ${Socket.RateLimit}/second`);
+          this.close(socketSession, 4000, 'Rate limit exceeded');
+        }
       });
     });
 

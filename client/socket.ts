@@ -53,6 +53,7 @@ export class Socket {
       this.socket = undefined;
     }
     this.dispatch({ type: 'S2C_SOCKET', payload: { status: 'closed' } });
-    if (code === 4000) this.dispatch({ type: 'S2C_END' });
+    // Code is actually a string
+    if (code == 4000) this.dispatch({ type: 'S2C_END' });
   };
 }

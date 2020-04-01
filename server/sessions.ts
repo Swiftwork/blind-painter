@@ -37,6 +37,7 @@ export class Session {
       nameTTS,
       participant,
       connected: false,
+      reaction: '',
       iterations: [],
     };
     if (!this.clients.size) this.hostId = id;

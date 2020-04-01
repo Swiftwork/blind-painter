@@ -1,13 +1,12 @@
 import { Socket } from 'client/socket';
 import { Dispatch } from 'react';
-import { Point } from 'shared/interfaces';
 import { SessionAction } from 'shared/actions';
 
 let socket: Socket | undefined;
 let throttle = false;
-const queuedPoints: Point[] = [];
+const queuedPoints: number[] = [];
 
-const sendPoints = (points: Point[]) => {
+const sendPoints = (points: number[]) => {
   if (!socket || !points.length) return;
   socket.send({ type: 'C2S_DRAW', payload: { points } });
   points.length = 0;
@@ -41,17 +40,14 @@ export const attachSocketDispatch = (dispatch: Dispatch<SessionAction>) => (acti
     }
 
     case 'C2S_DRAW_START': {
-      const points = action.payload.points;
-      Array.isArray(points) ? queuedPoints.push(...points) : queuedPoints.push(points);
+      queuedPoints.push(...action.payload.points);
       socket && socket.send(action);
       break;
     }
 
     case 'C2S_DRAW': {
-      const points = action.payload.points;
-      Array.isArray(points) ? queuedPoints.push(...points) : queuedPoints.push(points);
+      queuedPoints.push(...action.payload.points);
       if (!throttle) {
-        sendPoints(queuedPoints);
         throttle = true;
         setTimeout(() => {
           sendPoints(queuedPoints);
@@ -67,6 +63,11 @@ export const attachSocketDispatch = (dispatch: Dispatch<SessionAction>) => (acti
     }
 
     case 'C2S_UNDO': {
+      socket && socket.send(action);
+      break;
+    }
+
+    case 'C2S_REACTION': {
       socket && socket.send(action);
       break;
     }
