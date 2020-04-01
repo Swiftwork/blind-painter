@@ -1,4 +1,4 @@
-import { Point, Client, Session } from './interfaces';
+import { Point, Client, Session, Reaction } from './interfaces';
 
 /* CLIENT TO SERVER ACTIONS */
 
@@ -7,6 +7,7 @@ export type C2SSettingsPayload = { musicVolume?: number; soundVolume?: number };
 export type C2SStartPayload = { categoryId: string };
 export type C2SKickPayload = { clientId: string };
 export type C2SDrawStartPayload = { clientId?: string; points: Point | Point[] };
+export type C2SReactionPayload = { clientId?: string; reaction: Reaction };
 export type C2SDrawPayload = { clientId?: string; points: Point | Point[] };
 export type C2SUndoPayload = { clientId?: string; count?: number };
 export type C2SGuessPayload = { guess: string };
@@ -19,6 +20,7 @@ export type C2SAction =
   | { type: 'C2S_TURN' }
   | { type: 'C2S_DRAW_START'; payload: C2SDrawStartPayload }
   | { type: 'C2S_DRAW'; payload: C2SDrawPayload }
+  | { type: 'C2S_REACTION'; payload: C2SReactionPayload }
   | { type: 'C2S_UNDO'; payload: C2SUndoPayload }
   | { type: 'C2S_GUESS'; payload: C2SGuessPayload }
   | { type: 'C2S_RESET' }
@@ -37,6 +39,7 @@ export type S2CTurnPayload = { clientId: string };
 export type S2CDrawStartPayload = { clientId: string; points: Point | Point[] };
 export type S2CDrawPayload = { clientId: string; points: Point | Point[] };
 export type S2CUndoPayload = { clientId: string; count?: number };
+export type S2CReactionPayload = { clientId: string; reaction: string };
 export type S2CRevealPayload = {
   category: string;
   subject: string;
@@ -58,6 +61,7 @@ export type S2CAction =
   | { type: 'S2C_DRAW_START'; payload: S2CDrawStartPayload }
   | { type: 'S2C_DRAW'; payload: S2CDrawPayload }
   | { type: 'S2C_UNDO'; payload: S2CUndoPayload }
+  | { type: 'S2C_REACTION'; payload: S2CReactionPayload }
   | { type: 'S2C_GUESS' }
   | { type: 'S2C_REVEAL'; payload: S2CRevealPayload }
   | { type: 'S2C_END' }

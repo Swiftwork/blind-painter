@@ -112,6 +112,12 @@ export function reducer(state: Session, action: SessionAction): Session {
       return { ...state };
     }
 
+    case 'S2C_REACTION': {
+      const client = state.clients.get(action.payload.clientId);
+      if (client) client.reaction = action.payload.reaction;
+      return { ...state };
+    }
+
     case 'S2C_GUESS': {
       return { ...state, stage: 'guessing', turnId: undefined };
     }

@@ -10,8 +10,15 @@ export interface Client {
   guess: string | undefined;
   nameTTS: string | undefined;
   connected: boolean;
+  reaction: string;
   participant: boolean;
   iterations: Point[][][];
+}
+
+export enum Reaction {
+  Impressed,
+  Confused,
+  Angry,
 }
 
 export type Stage = 'none' | 'lobby' | 'started' | 'guessing' | 'reveal';

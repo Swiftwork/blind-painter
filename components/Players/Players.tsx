@@ -22,13 +22,24 @@ import ShowMeWhatYouGotSound from 'assets/sounds/show-me-what-you-got.mp3';
 
 interface Props {}
 
-export class Players extends Component<Props> {
+interface State {
+  reactions: Map<string, { reaction: string; showing: boolean }>;
+}
+
+export class Players extends Component<Props, State> {
   static contextType = SessionContext;
   declare context: React.ContextType<typeof SessionContext>;
 
   private turnId: string | undefined;
   private announcements: HTMLAudioElement[] = [];
   private nameTTS: Map<string, HTMLAudioElement> = new Map();
+
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      reactions: new Map(),
+    };
+  }
 
   componentDidMount() {
     this.announcements = [
@@ -43,7 +54,20 @@ export class Players extends Component<Props> {
   }
 
   componentDidUpdate() {
-    this.context.clients.forEach(({ id, nameTTS }) => {
+    const reactions = this.state.reactions;
+    this.context.clients.forEach(({ id, reaction, nameTTS }) => {
+      if (this.state.reactions.get(id)?.reaction !== reaction) {
+        reactions.set(id, { reaction, showing: true });
+        this.setState({ reactions });
+        setTimeout(() => {
+          const reactionState = this.state.reactions.get(id);
+          if (reactionState) {
+            reactions.set(id, { ...reactionState, showing: false });
+            this.setState({ reactions });
+          }
+        }, 1000);
+      }
+
       if (!this.nameTTS.has(id)) {
         const audio = new Audio(nameTTS);
         audio.load();
@@ -124,6 +148,9 @@ export class Players extends Component<Props> {
           </span>
           {client.name}
         </figcaption>
+        <span className={s.reaction} aria-hidden={!this.state.reactions.get(client.id)?.showing}>
+          {client.reaction}
+        </span>
       </figure>
     );
   }

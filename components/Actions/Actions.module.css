@@ -16,6 +16,7 @@
     margin: 0.5rem 1rem;
     width: 2.5rem;
     height: 2.5rem;
+    cursor: pointer;
 
     @media (--b_sm) {
       width: 3rem;
