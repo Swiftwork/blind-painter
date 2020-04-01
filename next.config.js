@@ -1,6 +1,9 @@
 const path = require('path');
 
 module.exports = {
+  devIndicators: {
+    autoPrerender: false,
+  },
   webpack(config, { isServer }) {
     config.resolve.modules.unshift(config.context);
     config.module.rules.push(

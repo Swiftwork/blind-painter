@@ -19,7 +19,7 @@ body {
   box-sizing: border-box;
 }
 
-input[type='text'],
+input,
 button,
 select,
 textarea {
@@ -36,7 +36,12 @@ select,
 [type='reset'] {
   cursor: pointer;
 
-  &:hover {
+  &[disabled] {
+    border-color: rgba(0, 0, 0, 0.5);
+    cursor: not-allowed;
+  }
+
+  &:not([disabled]):hover {
     animation: jiggle 0.3s ease-out;
   }
 }
