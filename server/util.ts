@@ -28,6 +28,14 @@ export class Util {
     return array[Math.floor(Math.random() * array.length)];
   }
 
+  static pick<T, K extends keyof T>(obj: T, include: K[]): Pick<T, K> {
+    return Object.fromEntries(Object.entries(obj).filter(([key]) => include.includes(key as any))) as any;
+  }
+
+  static omit<T, K extends keyof T>(obj: T, exclude: K[]): Omit<T, K> {
+    return Object.fromEntries(Object.entries(obj).filter(([key]) => !exclude.includes(key as any))) as any;
+  }
+
   static encode(n: number) {
     return hashids.encode(n);
   }

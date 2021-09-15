@@ -100,24 +100,46 @@ export class Session {
     });
   }
 
-  toJSON() {
-    return {
-      code: this.code,
-      stage: this.stage,
-      players: this.players,
-      rounds: this.rounds,
-      currentRound: this.currentRound,
-      elapsed: this.elapsed,
-      turnOrder: this.turnOrder,
-      turnId: this.turnId,
-      turnDuration: this.turnDuration,
-      turnElapsed: this.turnElapsed,
-      hostId: this.hostId,
-      category: this.category,
-      clients: Array.from(this.clients.entries(), ([id, client]) => {
-        const { guess, ...strippedClient } = client;
-        return [id, strippedClient];
+  static stripClients<K extends keyof Client>(clients: Map<string, Client>, exclude?: K[]) {
+    return Array.from(clients.entries(), ([id, client]) => {
+      const strippedClient = Array.isArray(exclude) && exclude.length ? Util.omit(client, exclude) : client;
+      return [id, strippedClient];
+    });
+  }
+
+  static serializePublic(session: Session, toJSON = true) {
+    const strippedSession: any = Util.pick(session, [
+      'code',
+      'stage',
+      'players',
+      'rounds',
+      'currentRound',
+      'elapsed',
+      'turnOrder',
+      'turnId',
+      'turnDuration',
+      'turnElapsed',
+      'hostId',
+      'category',
+      'clients',
+    ]);
+    strippedSession.clients = Session.stripClients(strippedSession.clients, ['guess']);
+    return toJSON ? JSON.stringify(strippedSession) : strippedSession;
+  }
+
+  static serialize(session: Session, toJSON = true) {
+    const strippedSession: any = { ...session };
+    strippedSession.clients = Session.stripClients(strippedSession.clients);
+    return toJSON ? JSON.stringify(strippedSession) : strippedSession;
+  }
+
+  static parse(session: string): Session {
+    return Object.assign(
+      new Session(''),
+      JSON.parse(session, (key, value) => {
+        if (key == 'clients') return new Map(value);
+        return value;
       }),
-    };
+    );
   }
 }

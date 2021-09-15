@@ -9,7 +9,8 @@
   "html.format.wrapAttributes": "force",
   "search.exclude": {
     "**/node_modules": true,
-    "dist": true
+    "dist": true,
+    "words": true
   },
   "typescript.tsdk": "node_modules/typescript/lib"
 }

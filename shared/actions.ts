@@ -1,4 +1,4 @@
-import { Point, Client, Session, Reaction } from './interfaces';
+import { Client, Session, Reaction } from './interfaces';
 
 /* CLIENT TO SERVER ACTIONS */
 
@@ -6,9 +6,9 @@ export type C2SSessionPayload = { players?: number; rounds?: number; turnDuratio
 export type C2SSettingsPayload = { musicVolume?: number; soundVolume?: number };
 export type C2SStartPayload = { categoryId: string };
 export type C2SKickPayload = { clientId: string };
-export type C2SDrawStartPayload = { clientId?: string; points: Point | Point[] };
+export type C2SDrawStartPayload = { clientId?: string; points: number[] };
 export type C2SReactionPayload = { clientId?: string; reaction: Reaction };
-export type C2SDrawPayload = { clientId?: string; points: Point | Point[] };
+export type C2SDrawPayload = { clientId?: string; points: number[] };
 export type C2SUndoPayload = { clientId?: string; count?: number };
 export type C2SGuessPayload = { guess: string };
 
@@ -36,8 +36,8 @@ export type S2CResetPayload = { session: Partial<Session> };
 export type S2CKickPayload = { clientId: string };
 export type S2CRoundPayload = { current: number };
 export type S2CTurnPayload = { clientId: string };
-export type S2CDrawStartPayload = { clientId: string; points: Point | Point[] };
-export type S2CDrawPayload = { clientId: string; points: Point | Point[] };
+export type S2CDrawStartPayload = { clientId: string; points: number[] };
+export type S2CDrawPayload = { clientId: string; points: number[] };
 export type S2CUndoPayload = { clientId: string; count?: number };
 export type S2CReactionPayload = { clientId: string; reaction: string };
 export type S2CRevealPayload = {
@@ -70,8 +70,6 @@ export type S2CAction =
 export type SocketPayload = { socketSession: string };
 
 export type SessionAction = C2SAction | S2CAction;
-
-export type SocketAction = C2SAction & { payload: SocketPayload };
 
 export interface SessionWithDispatch extends Session {
   dispatch: (action: SessionAction) => void;

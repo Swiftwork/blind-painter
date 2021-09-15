@@ -1,21 +1,22 @@
 import { Server } from 'http';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
-
 import sockjs, { Server as SocketServer, Connection } from 'sockjs';
 
 import { EventEmitter } from './emitter';
 import { S2CAction, C2SAction, SocketPayload } from 'shared/actions';
+import { Session } from './sessions';
+import { Redis } from './redis';
 
-export class Socket extends EventEmitter<'SESSION' | 'CONNECTION' | 'ACTION'> {
+export class Socket extends EventEmitter<'CONNECTION' | 'CLIENT_ACTION' | 'SERVER_ACTION'> {
   static RateLimit = 30;
 
-  private socket: SocketServer | undefined;
+  private socket: SocketServer;
   private connections: { [socketSession: string]: Connection };
   private rateLimiter = new RateLimiterMemory({
     points: Socket.RateLimit,
   });
 
-  constructor(server: Server) {
+  constructor(private server: Server, private redis: Redis) {
     super();
 
     this.socket = sockjs.createServer({
@@ -23,14 +24,20 @@ export class Socket extends EventEmitter<'SESSION' | 'CONNECTION' | 'ACTION'> {
     });
     this.connections = {};
 
+    this.redis.subscribe((channel, action) => {
+      console.debug('sub', action.type);
+      this.emit(channel, action);
+    });
+
     this.socket.on('connection', connection => {
       const socketSession = connection.url.split('/')[3];
       this.connections[socketSession] = connection;
-      this.emit('SESSION', { socketSession });
       this.emit('CONNECTION', { socketSession, status: 'connected' });
+      this.redis.publishConnection({ socketSession, status: 'connected' });
 
       connection.on('close', () => {
         this.emit('CONNECTION', { socketSession, status: 'disconnected' });
+        this.redis.publishConnection({ socketSession, status: 'disconnected' });
         delete this.connections[socketSession];
       });
 
@@ -38,7 +45,9 @@ export class Socket extends EventEmitter<'SESSION' | 'CONNECTION' | 'ACTION'> {
         try {
           await this.rateLimiter.consume(socketSession);
           const action: C2SAction & { payload: SocketPayload } = JSON.parse(event);
-          this.emit('ACTION', { ...action, payload: { socketSession, ...action.payload } });
+          action.payload.socketSession = socketSession;
+          this.emit('CLIENT_ACTION', action);
+          this.redis.publishClientAction(action);
         } catch (err) {
           console.warn(`Socket session ${socketSession} exceeded rate limit of ${Socket.RateLimit}/second`);
           this.close(socketSession, 4000, 'Rate limit exceeded');
@@ -46,7 +55,7 @@ export class Socket extends EventEmitter<'SESSION' | 'CONNECTION' | 'ACTION'> {
       });
     });
 
-    this.socket.installHandlers(server);
+    this.socket.installHandlers(this.server);
   }
 
   getConnection(socketSession: string) {
@@ -66,9 +75,13 @@ export class Socket extends EventEmitter<'SESSION' | 'CONNECTION' | 'ACTION'> {
   }
 
   broadcastTo(socketSessions: string | string[], action: S2CAction, exclude?: string[]) {
-    const message = JSON.stringify(action);
+    const message = JSON.stringify(action, (key, value) => {
+      if (key == 'session') return Session.serializePublic(value, false);
+      return value;
+    });
     const send = (socketSession: string) => {
       const connection = this.connections[socketSession];
+      this.redis.publishServerAction(action);
       if (connection) connection.write(message);
     };
 
@@ -83,7 +96,10 @@ export class Socket extends EventEmitter<'SESSION' | 'CONNECTION' | 'ACTION'> {
   }
 
   broadcastAll(action: S2CAction, exclude?: string[]) {
-    const message = JSON.stringify(action);
+    const message = JSON.stringify(action, (key, value) => {
+      if (key == 'session') return Session.serializePublic(value, false);
+      return value;
+    });
     for (const socketSession in this.connections) {
       if (Array.isArray(exclude) && exclude.includes(socketSession)) continue;
       const connection = this.connections[socketSession];

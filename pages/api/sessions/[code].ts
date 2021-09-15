@@ -1,19 +1,24 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Session } from 'server/sessions';
-import Memcached from 'memcached';
+import { Redis } from 'server/redis';
 
-const memcached = new Memcached(`${process.env.MEMCACHED_HOST}:${process.env.MEMCACHED_PORT}`);
+const redis = new Redis();
 
 /** Fetches a session based on code
  * @param code code identifying the session
  */
 async function getSession(code: string) {
-  return new Promise<{ code: string; session: Session }>((resolve, reject) => {
-    code = code.toUpperCase();
-    memcached.get(`session-${code}`, (err, data) => {
-      if (err) return reject(err);
-      resolve({ code, session: JSON.parse(data) });
-    });
+  code = code.toUpperCase();
+  return redis.getSession(code).then(redisSession => {
+    if (!redisSession) throw new Error('Session does not exist in redis');
+    return redisSession;
+  });
+}
+
+async function updateSession(session: Session) {
+  return redis.setSession(session).then(redisSession => {
+    if (!redisSession) throw new Error('Session does not exist in redis');
+    return redisSession;
   });
 }
 
@@ -35,6 +40,7 @@ async function put(req: NextApiRequest, res: NextApiResponse) {
   const client = await session.newClient(name, participant);
   if (!client)
     return errorMessage(res, 403, `Session ${code} already has the maximum of ${session.players} participants`);
+  await updateSession(session);
   res.send({ code, client });
 }
 

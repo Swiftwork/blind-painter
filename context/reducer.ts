@@ -79,6 +79,7 @@ export function reducer(state: Session, action: SessionAction): Session {
     case 'S2C_DRAW_START': {
       const iteration = getIteration(action.payload.clientId, state);
       if (!iteration) return state;
+      console.log('iteration start', iteration);
 
       // Create a new segment
       iteration.push(action.payload.points);
@@ -90,6 +91,7 @@ export function reducer(state: Session, action: SessionAction): Session {
     case 'S2C_DRAW': {
       const iteration = getIteration(action.payload.clientId, state);
       if (!iteration) return state;
+      console.log('iteration', iteration);
       const segment = iteration[iteration.length - 1];
 
       // Append to last segment

@@ -1,21 +1,17 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import Memcached from 'memcached';
+import { Redis } from 'server/redis';
 
 import { Session } from 'server/sessions';
 import { Util } from 'server/util';
 
-const memcached = new Memcached(`${process.env.MEMCACHED_HOST}:${process.env.MEMCACHED_PORT}`);
+const redis = new Redis();
 
 /** Creates a new session based on code */
-async function createSession() {
-  return new Promise<{ code: string; session: Session }>((resolve, reject) => {
-    const code = Util.encode(Date.now() % (1000 * 60 * 60));
-    const session = new Session(code);
-    memcached.set(`session-${code}`, JSON.stringify(session), 1000 * 60 * 60, err => {
-      if (err) return reject(err);
-      resolve({ code, session });
-    });
-  });
+async function createSession(name: string, participant = true) {
+  const code = Util.encode(Date.now() % (1000 * 60 * 60));
+  const session = new Session(code);
+  const client = await session.newClient(name, participant);
+  return redis.setSession(session).then(redisSession => ({ ...redisSession, client }));
 }
 
 function errorMessage(res: NextApiResponse, code = 200, reason = 'ok') {
@@ -29,8 +25,7 @@ async function post(req: NextApiRequest, res: NextApiResponse) {
   } = req;
   console.log(`Requesting a new session using name ${name} and participation ${participant}`);
   if (!name) return errorMessage(res, 400, `You must supply a name in request body`);
-  const { code, session } = await createSession();
-  const client = await session.newClient(name, participant);
+  const { code, client } = await createSession(name, participant);
   res.send({ code, client });
 }
 

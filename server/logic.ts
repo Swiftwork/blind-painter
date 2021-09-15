@@ -1,7 +1,5 @@
-import Memcached from 'memcached';
 import { Util } from './util';
 import { words } from './words';
-import { Session } from './sessions';
 import {
   SocketPayload,
   C2SStartPayload,
@@ -10,13 +8,14 @@ import {
   C2SKickPayload,
   C2SUndoPayload,
   C2SGuessPayload,
-  SocketAction,
   C2SSessionPayload,
   C2SReactionPayload,
+  C2SAction,
 } from 'shared/actions';
 import { Socket } from './socket';
+import { Redis } from './redis';
+import { Session } from './sessions';
 
-const memcached = new Memcached(`${process.env.MEMCACHED_HOST}:${process.env.MEMCACHED_PORT}`);
 const reactions = {
   0: ['Wow!', 'Fantabulous!', 'Excellent!', 'Obvious!', 'Impressive!'],
   1: ['Uhm...', 'Not sure...', 'Ok...', 'Confusing...', '???'],
@@ -24,21 +23,18 @@ const reactions = {
 };
 
 export class Logic {
-  private socket: Socket;
   private timers: { [code: string]: NodeJS.Timeout } = {};
   private tick = 1000;
+  private sessions = new Map<string, Session>();
 
-  constructor(socket: Socket) {
-    this.socket = socket;
-
+  constructor(private socket: Socket, private redis: Redis) {
     setInterval(() => {
-      console.log(`Current number of sessions is ${sessions.size}`);
-    }, 10000);
+      console.log(`Current number of sessions: ${this.sessions.size}`);
+    }, 60000);
 
     /* EVENTS */
-    socket.on('SESSION', this.onSession);
     socket.on('CONNECTION', this.onConnection);
-    socket.on('ACTION', (action: SocketAction) => {
+    socket.on('CLIENT_ACTION', (action: C2SAction & { payload: SocketPayload }) => {
       switch (action.type) {
         case 'C2S_SESSION':
           return this.onSession(action.payload);
@@ -66,9 +62,23 @@ export class Logic {
     });
   }
 
-  getSessionClient(socketSession: string) {
+  /* HELPERS */
+
+  ofInterest(socketSession: string) {
     const [code] = socketSession.split('-');
-    const session = sessions.get(code);
+    return !!this.socket.getConnection(socketSession) || !!this.sessions.has(code);
+  }
+
+  async getSessionClient(socketSession: string, fromStore = false) {
+    const [code] = socketSession.split('-');
+    let session: Session | undefined;
+    if (fromStore || !this.sessions.has(code)) {
+      const redisSession = await this.redis.getSession(code);
+      session = redisSession.session;
+      this.sessions.set(redisSession.code, session);
+    } else {
+      session = this.sessions.get(code);
+    }
     if (session) {
       const client = session.getClient(socketSession);
       return { session, client };
@@ -76,48 +86,68 @@ export class Logic {
     return {};
   }
 
-  onSession = ({ socketSession, players, rounds, turnDuration }: C2SSessionPayload & SocketPayload) => {
-    console.log('logic onSession', socketSession);
-    const { session, client } = this.getSessionClient(socketSession);
+  async updateSession(session: Session) {
+    return this.redis.setSession(session);
+  }
+
+  async deleteSession(session: Session) {
+    return this.redis.deleteSession(session);
+  }
+
+  /* EVENTS */
+
+  onConnection = async ({ socketSession, status }: { status: 'connected' | 'disconnected' } & SocketPayload) => {
+    console.debug('logic onConnection', socketSession);
+    const { session, client } = await this.getSessionClient(socketSession, true);
     if (!session || !client) return this.socket.getConnection(socketSession).close('4000', 'Session does not exist');
+
+    client.connected = status == 'connected';
+    await this.updateSession(session);
+
+    if (session.stage !== 'started') {
+      // Send current session state to all connected clients
+      this.socket.broadcastTo(session.getIds(), { type: 'S2C_SESSION', payload: { session, client } });
+    } else {
+      // Is started, send current session state only to new client
+      this.socket.broadcastTo(socketSession, { type: 'S2C_SESSION', payload: { session, client } });
+    }
+
+    // Send connection status to all other sockets
+    this.socket.broadcastTo(
+      session.getIds(),
+      { type: 'S2C_CONNECTION', payload: { clientId: socketSession, status } },
+      [socketSession],
+    );
+
+    // If nobody is connected, end session after 1 minutes
+    if (Array.from(session.clients, ([_, client]) => client.connected).every(connected => !connected)) {
+      this.timers[`${session.code}-ending`] = setTimeout(() => {
+        this.end(session);
+      }, 60 * 1000);
+    } else {
+      clearInterval(this.timers[`${session.code}-ending`]);
+    }
+  };
+
+  onSession = async ({ socketSession, players, rounds, turnDuration }: C2SSessionPayload & SocketPayload) => {
+    console.debug('logic onSession', socketSession);
+    const { session, client } = await this.getSessionClient(socketSession, true);
+    if (!session || !client) return;
+
+    // Settings
     if (session.hostId === socketSession) {
       if (players) session.players = players;
       if (rounds) session.rounds = rounds;
       if (turnDuration) session.turnDuration = turnDuration * 1000;
+      await this.updateSession(session);
     }
 
-    if (session.stage == 'lobby') {
-      this.socket.broadcastTo(session.getIds(), { type: 'S2C_SESSION', payload: { session, client } });
-    } else {
-      this.socket.broadcastTo(socketSession, { type: 'S2C_SESSION', payload: { session, client } });
-    }
-  };
-
-  onConnection = ({ socketSession, status }: { status: 'connected' | 'disconnected' } & SocketPayload) => {
-    console.log('logic onConnection', socketSession);
-    const { session, client } = this.getSessionClient(socketSession);
-    if (session && client) {
-      client.connected = status == 'connected';
-      this.socket.broadcastTo(
-        session.getIds(),
-        { type: 'S2C_CONNECTION', payload: { clientId: socketSession, status } },
-        status == 'disconnected' ? [socketSession] : undefined,
-      );
-
-      if (Array.from(session.clients, ([_, client]) => client.connected).every(connected => !connected)) {
-        // Nobody is connected, end session after 1 minutes
-        this.timers[`${session.code}-ending`] = setTimeout(() => {
-          this.end(session);
-        }, 60 * 1000);
-      } else {
-        clearInterval(this.timers[`${session.code}-ending`]);
-      }
-    }
+    this.socket.broadcastTo(session.getIds(), { type: 'S2C_SESSION', payload: { session, client } });
   };
 
   onStart = async ({ socketSession, categoryId }: C2SStartPayload & SocketPayload) => {
-    console.log('logic onStart', socketSession);
-    const { session } = this.getSessionClient(socketSession);
+    console.debug('logic onStart', socketSession);
+    const { session } = await this.getSessionClient(socketSession);
     if (!session || session.hostId !== socketSession) return; // Only host can start the game
 
     const participantIds = session.getIds(true);
@@ -128,6 +158,7 @@ export class Logic {
     session.category = category;
     session.subject = word;
     session.stage = 'started';
+    this.updateSession(session);
     this.socket.broadcastTo(
       participantIds,
       {
@@ -164,8 +195,8 @@ export class Logic {
     }, 1000 * 15);
   };
 
-  onDrawStart = ({ socketSession, points }: C2SDrawStartPayload & SocketPayload) => {
-    const { session, client } = this.getSessionClient(socketSession);
+  onDrawStart = async ({ socketSession, points }: C2SDrawStartPayload & SocketPayload) => {
+    const { session, client } = await this.getSessionClient(socketSession);
     if (!session || !client || session.turnId !== socketSession) return;
 
     let iteration = client.iterations[session.currentRound - 1];
@@ -181,8 +212,8 @@ export class Logic {
     ]);
   };
 
-  onDraw = ({ socketSession, points }: C2SDrawPayload & SocketPayload) => {
-    const { session, client } = this.getSessionClient(socketSession);
+  onDraw = async ({ socketSession, points }: C2SDrawPayload & SocketPayload) => {
+    const { session, client } = await this.getSessionClient(socketSession);
     if (!session || !client || session.turnId !== socketSession) return;
 
     const iteration = client.iterations[session.currentRound - 1];
@@ -199,17 +230,18 @@ export class Logic {
     this.socket.broadcastTo(ids, { type: 'S2C_DRAW', payload: { clientId: socketSession, points } }, [socketSession]);
   };
 
-  onKick = ({ socketSession, clientId }: C2SKickPayload & SocketPayload) => {
-    const { session } = this.getSessionClient(socketSession);
+  onKick = async ({ socketSession, clientId }: C2SKickPayload & SocketPayload) => {
+    const { session } = await this.getSessionClient(socketSession);
     if (!session) return;
     if (session.hostId !== socketSession) return; // Only host can kick
     session.deleteClient(clientId);
+    this.updateSession(session);
     const ids = session.getIds();
     this.socket.broadcastTo(ids, { type: 'S2C_KICK', payload: { clientId } });
   };
 
-  onUndo = ({ socketSession, count }: C2SUndoPayload & SocketPayload) => {
-    const { session, client } = this.getSessionClient(socketSession);
+  onUndo = async ({ socketSession, count }: C2SUndoPayload & SocketPayload) => {
+    const { session, client } = await this.getSessionClient(socketSession);
     if (!session || !client || session.turnId !== socketSession) return;
 
     const iteration = client.iterations[session.currentRound - 1];
@@ -223,8 +255,8 @@ export class Logic {
     this.socket.broadcastTo(ids, { type: 'S2C_UNDO', payload: { clientId: socketSession, count } }, [socketSession]);
   };
 
-  onReaction = ({ socketSession, reaction }: C2SReactionPayload & SocketPayload) => {
-    const { session, client } = this.getSessionClient(socketSession);
+  onReaction = async ({ socketSession, reaction }: C2SReactionPayload & SocketPayload) => {
+    const { session, client } = await this.getSessionClient(socketSession);
     if (!session || !client || session.turnId === socketSession) return;
 
     const oldReaction = client.reaction;
@@ -238,9 +270,9 @@ export class Logic {
     });
   };
 
-  onTurn = ({ socketSession }: SocketPayload) => {
-    console.log('logic onTurn', socketSession);
-    const { session } = this.getSessionClient(socketSession);
+  onTurn = async ({ socketSession }: SocketPayload) => {
+    console.debug('logic onTurn', socketSession);
+    const { session } = await this.getSessionClient(socketSession);
     if (!session) return;
     if (session.stage !== 'started') return;
     if (session.turnId !== socketSession) return; // Only current client may advance turn
@@ -251,7 +283,7 @@ export class Logic {
   advanceRound(session: Session) {
     session.currentRound++;
     if (session.currentRound <= session.rounds) {
-      console.log('logic advanceRound', session.currentRound);
+      console.debug('logic advanceRound', session.currentRound);
       this.socket.broadcastTo(session.getIds(), { type: 'S2C_ROUND', payload: { current: session.currentRound } });
       this.advanceTurn(session);
     } else {
@@ -267,7 +299,7 @@ export class Logic {
     if (session.currentTurn <= session.turnOrder.length) {
       const clientId = session.turnOrder[session.currentTurn - 1];
       session.turnId = clientId;
-      console.log('logic advanceTurn', session.currentTurn);
+      console.debug('logic advanceTurn', session.currentTurn);
       this.socket.broadcastTo(session.getIds(), { type: 'S2C_TURN', payload: { clientId } });
 
       this.timers[session.code] = setInterval(() => {
@@ -283,7 +315,7 @@ export class Logic {
 
   advanceGuess(session: Session) {
     clearInterval(this.timers[session.code]);
-    console.log('logic advanceGuess');
+    console.debug('logic advanceGuess');
     session.stage = 'guessing';
     session.turnId = undefined;
     session.turnElapsed = 0;
@@ -298,7 +330,7 @@ export class Logic {
 
   advanceReveal(session: Session) {
     clearInterval(this.timers[session.code]);
-    console.log('logic advanceReveal');
+    console.debug('logic advanceReveal');
     session.stage = 'reveal';
     session.turnElapsed = 0;
     this.socket.broadcastTo(session.getIds(), {
@@ -321,12 +353,13 @@ export class Logic {
   reset(session: Session) {
     clearInterval(this.timers[session.code]);
     session.reset();
+    this.updateSession(session);
     this.socket.broadcastTo(session.getIds(), { type: 'S2C_RESET', payload: { session } });
   }
 
-  onGuess = ({ socketSession, guess }: C2SGuessPayload & SocketPayload) => {
-    console.log('logic onGuess', socketSession);
-    const { session, client } = this.getSessionClient(socketSession);
+  onGuess = async ({ socketSession, guess }: C2SGuessPayload & SocketPayload) => {
+    console.debug('logic onGuess', socketSession);
+    const { session, client } = await this.getSessionClient(socketSession);
     if (!session || !client) return;
     if (session.stage == 'guessing') client.guess = guess;
     if (Array.from(session.clients.values()).every(client => !!client.guess)) this.advanceReveal(session);
@@ -336,12 +369,13 @@ export class Logic {
     clearInterval(this.timers[session.code]);
     this.socket.broadcastTo(session.getIds(), { type: 'S2C_END' });
     this.socket.close(session.getIds(), 4000, 'Session has ended');
-    sessions.delete(session.code);
+    this.sessions.delete(session.code);
+    this.deleteSession(session);
   }
 
-  onEnd = ({ socketSession }: SocketPayload) => {
-    console.log('logic onEnd', socketSession);
-    const { session } = this.getSessionClient(socketSession);
+  onEnd = async ({ socketSession }: SocketPayload) => {
+    console.debug('logic onEnd', socketSession);
+    const { session } = await this.getSessionClient(socketSession);
     if (!session) return;
     if (session.hostId !== socketSession) return; // Only host can end the game
     this.end(session);
